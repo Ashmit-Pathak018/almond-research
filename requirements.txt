@@ -1,0 +1,15 @@
+# Project Almond — Python dependencies
+# Install: pip install -r requirements.txt
+
+# Core
+pydantic>=2.0.0          # MemoryBlock schema + validation
+
+# LLM Providers (install only what you need)
+anthropic>=0.25.0        # Anthropic Claude API
+openai>=1.0.0            # OpenAI GPT API (optional)
+
+# Phase 2 — uncomment when ready
+# spacy>=3.7.0           # NER-based keyword extraction
+# keybert>=0.8.0         # KeyBERT keyword extraction
+# sentence-transformers  # Embedding-based page-in (semantic search)
+# numpy>=1.26.0          # Required by sentence-transformers

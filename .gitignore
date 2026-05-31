@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+.venv/
+venv/
+
+# Logs
+logs/
+*.log
+.almond_live.log
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Chroma
+almond_chroma/
+almond_chroma_db/
+
+# Generated benchmark outputs
+longmem_eval_results/
+results/
+Results_folder/
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Datasets
+data/
+
+# Results
+Results_folder/
+results/
+longmem_eval_results/
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Datasets
+longmemeval_dataset.json
