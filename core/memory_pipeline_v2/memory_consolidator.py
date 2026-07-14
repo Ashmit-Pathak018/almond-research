@@ -56,8 +56,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Optional
 
-from fact_extractor import StructuredFact, TemporalBound
-from entity_extractor import EntityRegistry
+from core.memory_pipeline_v2.fact_extractor import StructuredFact, TemporalBound
+from core.memory_pipeline_v2.entity_extractor import EntityRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -439,7 +439,7 @@ class MemoryConsolidator:
         Find entity pairs in the registry with needs_review=True and
         high name similarity. Merge confirmed duplicates.
         """
-        from entity_extractor import _name_similarity
+        from core.memory_pipeline_v2.entity_extractor import _name_similarity
 
         candidates = [e for e in self._registry.all_entities() if e.needs_review]
         all_entities = self._registry.all_entities()

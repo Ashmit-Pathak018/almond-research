@@ -31,9 +31,9 @@ import logging
 from dataclasses import dataclass, field
 from typing import Optional, Protocol
 
-from query_analyzer import QueryIntent
-from entity_extractor import EntityRegistry, Entity
-from temporal_retriever import RetrievedMemory   # reuse the same type
+from core.memory_pipeline_v2.query_analyzer import QueryIntent
+from core.memory_pipeline_v2.entity_extractor import EntityRegistry, Entity
+from core.memory_pipeline_v2.temporal_retriever import RetrievedMemory   # reuse the same type
 
 logger = logging.getLogger(__name__)
 
@@ -89,6 +89,10 @@ class MemoryStore(Protocol):
     def get_by_id(self, memory_id: str) -> Optional[str]: ...
     def semantic_search(self, query: str, top_k: int = 5,
                         filters: Optional[dict] = None) -> list[tuple[str, str, float]]: ...
+    # Optional — not part of the strict Protocol contract (NullMemoryStore and
+    # other lightweight stubs don't need to implement it), but used when
+    # present via getattr() to pull created_at for recency-aware selection.
+    # def get_block_by_id(self, memory_id: str) -> Optional[MemoryBlock]: ...
 
 
 class NullMemoryStore:
@@ -203,18 +207,79 @@ class ComparisonRetriever:
         """
         Retrieve memories for a single entity.
         Returns (ComparisonGroup, used_fallback).
+
+        entity.memory_ids is populated in pure ingestion/append order (see
+        entity_extractor.py) with no relevance or recency ordering at all.
+        Previously this method took entity.memory_ids[:max_per_entity]
+        directly — i.e. the first N memories that happened to mention this
+        entity chronologically, regardless of whether those were the turns
+        that actually establish when/how the entity was acquired or used.
+        For entities mentioned often in passing (e.g. "my mesh network
+        system" coming up repeatedly while shopping for an unrelated
+        desktop computer), the dedicated "I set up X" turn could easily
+        fall outside the first N mentions and never reach the prompt.
+
+        Fix: pull ALL memory_ids for the entity (not just the first N),
+        fetch full MemoryBlocks when the store supports it (via
+        get_block_by_id), sort candidates by recency (most recent mention
+        first) before truncating to max_per_entity. Recency is a reasonable
+        proxy here — the LongMemEval benchmark's later-session turns are
+        more likely to be the actual answer-bearing statement, since the
+        most informative turn about "when did I do X" tends to appear when
+        the user states it directly rather than every time the entity is
+        mentioned in passing afterward. This is combined with the keyword-
+        aware scoring in _score_memory_for_entity below.
         """
-        memories: list[RetrievedMemory] = []
         used_fallback = False
 
-        # Pull all memory IDs from the entity registry
-        for memory_id in entity.memory_ids[: self._max_per]:
-            if memory_id in already_seen:
-                continue
-            text = self._store.get_by_id(memory_id)
+        # Pull every memory_id for this entity (no longer truncated up front).
+        all_ids = [mid for mid in entity.memory_ids if mid not in already_seen]
+
+        candidates: list[tuple[str, str, Optional[object]]] = []  # (id, text, block_or_None)
+        get_block = getattr(self._store, "get_block_by_id", None)
+
+        for memory_id in all_ids:
+            block = get_block(memory_id) if get_block else None
+            if block is not None:
+                text = getattr(block, "content", None)
+            else:
+                text = self._store.get_by_id(memory_id)
             if not text:
                 continue
+            candidates.append((memory_id, text, block))
 
+        # Sort by recency (most recent first) when timestamp metadata is
+        # available; falls back to original ingestion order otherwise
+        # (e.g. NullMemoryStore in tests, or a store without get_block_by_id).
+        if any(c[2] is not None for c in candidates):
+            candidates.sort(
+                key=lambda c: getattr(c[2], "created_at", None) or "",
+                reverse=True,
+            )
+
+        # Pure recency-sort-then-truncate has its own failure mode: if the
+        # turn that actually establishes WHEN/HOW the entity was acquired
+        # is the OLDEST mention (common — people often state "I set up X"
+        # once, then mention X in passing many times afterward), truncating
+        # to the most-recent max_per_entity drops it just as easily as the
+        # old ingestion-order truncation did, just in the opposite direction.
+        #
+        # Fix: partition into keyword-matched turns (see _EVENT_KEYWORDS)
+        # and everything else. ALL keyword-matched turns are kept regardless
+        # of truncation, since these are disproportionately likely to be the
+        # actual answer-bearing content. Remaining slots are filled from the
+        # recency-sorted remainder.
+        keyword_matched = [c for c in candidates if self._has_event_keyword(c[1])]
+        other = [c for c in candidates if not self._has_event_keyword(c[1])]
+
+        remaining_slots = max(0, self._max_per - len(keyword_matched))
+        selected = keyword_matched + other[:remaining_slots]
+        # Cap total in case keyword matches alone exceed max_per (rare, but
+        # don't silently balloon past the configured limit)
+        selected = selected[: max(self._max_per, len(keyword_matched))]
+
+        memories: list[RetrievedMemory] = []
+        for memory_id, text, _block in selected:
             score = self._score_memory_for_entity(text, entity)
             memories.append(RetrievedMemory(
                 memory_id=memory_id,
@@ -255,10 +320,31 @@ class ComparisonRetriever:
     # Scoring
     # ------------------------------------------------------------------
 
+    _EVENT_KEYWORDS = (
+        "set up", "set it up", "got my", "bought", "purchased", "ordered",
+        "pre-ordered", "started using", "installed", "upgraded to",
+        "switched to", "began", "started working with", "signed up",
+        "moved in", "got a new", "picked up",
+    )
+
+    def _has_event_keyword(self, text: str) -> bool:
+        """True if text contains acquisition/setup phrasing (see _EVENT_KEYWORDS)."""
+        text_lower = text.lower()
+        return any(kw in text_lower for kw in self._EVENT_KEYWORDS)
+
     def _score_memory_for_entity(self, text: str, entity: Entity) -> float:
         """
-        Score how central an entity is to a memory text.
-        Uses name/alias occurrence count normalised by text length.
+        Score how central an entity is to a memory text, with a boost for
+        event-establishing language (see _EVENT_KEYWORDS above).
+
+        Base score uses name/alias occurrence count normalised by text
+        length, same as before. An additional boost is applied when the
+        text also contains acquisition/setup phrasing, since those turns
+        are disproportionately likely to be what a comparison or temporal
+        question is actually asking about - a plain mention-count can't
+        distinguish "I set up my smart thermostat last month" from "by the
+        way, my smart thermostat has been great" even though only the
+        first answers a "when did I set this up" question.
         """
         text_lower  = text.lower()
         text_words  = max(len(text.split()), 1)
@@ -270,9 +356,14 @@ class ComparisonRetriever:
 
         # Normalise: 1 hit in a 10-word sentence > 1 hit in a 100-word sentence
         raw_score = hit_count / (text_words ** 0.5)
+        score = raw_score * 3.0
+
+        # Event-establishing keyword boost
+        if any(kw in text_lower for kw in self._EVENT_KEYWORDS):
+            score += 0.25
 
         # Clamp to [0.40, 0.95] so registry memories always beat fallback (≤0.85)
-        return min(0.95, max(0.40, raw_score * 3.0))
+        return min(0.95, max(0.40, score))
 
     # ------------------------------------------------------------------
     # Helpers

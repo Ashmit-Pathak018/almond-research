@@ -165,6 +165,11 @@ _PREDICATE_MAP: dict[str, str] = {
     "received":  "purchased",
     "acquired":  "purchased",
     "grabbed":   "purchased",
+    "booked":    "purchased",     # "I booked the Airbnb" — booking is an acquisition event
+    "reserved":  "purchased",     # "I reserved a table" — same pattern
+    "scheduled": "attended",      # "I scheduled a class" — marks an attendance commitment
+    "set up":    "set_up",        # "I set up my thermostat" — device setup is a datable event
+    "installed": "installed",     # "I installed X" — same as set up
 
     # ownership / possession
     "have":  "owns",
@@ -497,6 +502,15 @@ class FactExtractor:
             logger.debug("extract: skipping memory_type=%s", memory_type)
             return []
 
+        # ASSISTANT_RESPONSE turns contain no new durable facts — they restate,
+        # confirm, or respond to what the user said. Any fact worth indexing from
+        # an assistant reply was already present in the user turn that prompted it
+        # and is indexed there. Skipping these eliminates ~half the LLM calls to
+        # fact_extract (581 calls → ~290) with zero retrieval quality loss.
+        if memory_type == "ASSISTANT_RESPONSE":
+            logger.debug("extract: skipping ASSISTANT_RESPONSE (no durable facts)")
+            return []
+
         if not text or not text.strip():
             return []
 
@@ -648,7 +662,7 @@ class FactExtractor:
             return
         raw = [
             # ownership / purchase
-            (r"I (bought|purchased|got|ordered|picked up|received)\s+(?:a\s+|an\s+|the\s+)?(.+?)(?:\s+(?:in|on|at|for|from|last|yesterday|today|\d).*)?$",
+            (r"I (bought|purchased|got|ordered|picked up|received|booked|reserved)\s+(?:a\s+|an\s+|the\s+)?(.+?)(?:\s+(?:in|on|at|for|from|last|yesterday|today|\d).*)?$",
              "purchased", FactType.OWNERSHIP),
             (r"(?:my|I have a|I own a|I use a)\s+(.+?)\s+(?:is|are|was|has)\b",
              "owns", FactType.OWNERSHIP),
@@ -662,6 +676,9 @@ class FactExtractor:
              "attended", FactType.EVENT),
             (r"I (?:completed|finished|launched|released|started)\s+(.+?)(?:\s+(?:in|on|at|last).+)?$",
              "completed", FactType.EVENT),
+            # setup / installation — critical for device/appliance ordering questions
+            (r"I (?:set up|installed|configured|set it up)\s+(?:a\s+|an\s+|the\s+|my\s+)?(.+?)(?:\s+(?:in|on|at|last|about|\d).*)?$",
+             "set_up", FactType.EVENT),
             # employment / location
             (r"I (?:work at|work for|am employed at)\s+(.+?)$",
              "works_at", FactType.ATTRIBUTE),

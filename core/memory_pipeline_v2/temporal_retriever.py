@@ -40,9 +40,9 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional, Protocol
 
-from query_analyzer import QueryIntent, IntentType
-from timeline_index import TimelineIndex, TimelineEvent, OrderingResult
-from entity_extractor import EntityRegistry, Entity
+from core.memory_pipeline_v2.query_analyzer import QueryIntent, IntentType
+from core.memory_pipeline_v2.timeline_index import TimelineIndex, TimelineEvent, OrderingResult
+from core.memory_pipeline_v2.entity_extractor import EntityRegistry, Entity
 
 logger = logging.getLogger(__name__)
 
@@ -192,6 +192,17 @@ class TemporalRetriever:
                 logger.debug("resolved %r → entity %s (%s)", name, entity.id[:8], entity.name)
             else:
                 logger.debug("could not resolve entity name: %r", name)
+
+        # DIAGNOSTIC: summary line for eval log parsing.
+        # names_to_try=[] -> query_analyzer extracted no entities from the query
+        #     (intent.entities_mentioned / comparison_targets both empty)
+        # names_to_try non-empty but resolved=[] -> entities were named in the
+        #     query but extraction never created registry entries for them
+        #     (entity_extractor missed them during replay)
+        logger.debug(
+            "[ENTITY_RESOLVE] query=%r names_tried=%s resolved_count=%d",
+            intent.raw_query[:60], names_to_try, len(resolved),
+        )
 
         return resolved
 

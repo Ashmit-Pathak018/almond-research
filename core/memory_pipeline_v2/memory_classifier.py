@@ -135,6 +135,10 @@ class LMStudioAdapter:
                 "messages":    [{"role": "user", "content": prompt}],
                 "max_tokens":  max_tokens,
                 "temperature": 0.1,   # Low temp for classification
+                "seed":        42,    # Fixed seed for reproducible classification
+                                       # across otherwise-identical runs (see
+                                       # AlmondConfig.seed in almond.py for the
+                                       # full rationale).
             }).encode()
             req = urllib.request.Request(
                 f"{self.base_url}/chat/completions",
@@ -173,7 +177,26 @@ def _build_heuristic_rules() -> list[tuple[re.Pattern, MemoryType, float, Option
         (r"\bmy (favourite|favorite|preferred|go-to)\b",
          MemoryType.USER_PREFERENCE, 0.80, MemorySource.USER),
 
-        # EVENT — past tense action verbs + time markers
+        # EVENT — compound rule: action verb + explicit date/time marker in
+        # the SAME turn. This combination is materially less ambiguous than
+        # either signal alone (a turn can rarely be PROJECT_FACT or NOISE
+        # while also naming a specific past-tense action and a date), so it
+        # earns a higher confidence than the two component rules below.
+        # Added after runtime profiling showed turns like "I attended the
+        # workshop... on January 10th" (which clearly should classify as
+        # EVENT) were falling through to the LLM purely because the
+        # standalone EVENT rule confidence (0.72) sat under the heuristic
+        # gate (0.78) — not because the LLM was actually needed.
+        (r"\b(attended|visited|went to|participated in|completed|finished|started|launched|released|"
+         r"bought|purchased|got|booked|reserved|set up|installed|ordered|pre-?ordered|received)\b.{0,80}"
+         r"\b(yesterday|last (week|month|year|monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b|ago|"
+         r"on (monday|tuesday|wednesday|thursday|friday|saturday|sunday)|"
+         r"on (january|february|march|april|may|june|july|august|september|october|november|december)|"
+         r"\d{1,2}(st|nd|rd|th)?\b)",
+         MemoryType.EVENT, 0.82, MemorySource.USER),
+
+        # EVENT — past tense action verbs + time markers (standalone, lower
+        # confidence than the compound rule above since only one signal is present)
         (r"\b(yesterday|last (week|month|year)|ago|on (monday|tuesday|wednesday|thursday|friday|saturday|sunday))\b",
          MemoryType.EVENT, 0.70, MemorySource.USER),
         (r"\b(attended|visited|went to|participated in|completed|finished|started|launched|released)\b",
@@ -295,6 +318,29 @@ class MemoryClassifier:
             logger.debug("classify: heuristic hit for %s (conf=%.2f)",
                          heuristic.memory_type, heuristic.type_confidence)
             return heuristic
+
+        # 2b. Assistant-source fast path: if no heuristic rule fired (in
+        # particular, the NOISE rule above did NOT match), assistant turns
+        # default to ASSISTANT_RESPONSE without needing an LLM call at all.
+        # This was a real gap found via runtime profiling: every rule in
+        # _HEURISTIC_RULES except NOISE is source_filter=MemorySource.USER,
+        # so assistant turns could never hit the heuristic gate above no
+        # matter how well-calibrated the USER-facing rules were tuned -
+        # they were paying the full LLM cost only to land on this exact
+        # same ASSISTANT_RESPONSE classification via _fallback_classify
+        # at the very end of the pipeline. Since roughly half of all turns
+        # in a typical back-and-forth session are assistant-authored, this
+        # was silently capping heuristic coverage at ~50% regardless of any
+        # USER-rule tuning - this fast path removes that ceiling.
+        if memory.source == MemorySource.ASSISTANT:
+            return self._make_classified(
+                memory,
+                mtype=MemoryType.ASSISTANT_RESPONSE,
+                confidence=0.70,
+                method="heuristic",
+                rationale="Assistant-authored text with no NOISE markers — "
+                          "defaults to ASSISTANT_RESPONSE.",
+            )
 
         # 3. Skip LLM if configured
         if self._heuristic_only:

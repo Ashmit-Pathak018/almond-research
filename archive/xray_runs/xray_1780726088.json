@@ -1,0 +1,73 @@
+{
+  "timestamp": 1780726069.9228096,
+  "question": "What was the first issue I had with my new car after its first service?",
+  "prepare_context": {
+    "returned_blocks": 3
+  },
+  "context_blocks": [
+    {
+      "id": "ef507539-8993-4f46-8efb-abd44c1942da",
+      "tier": "L1_HOT_CACHE",
+      "tag": "CORE_RULE",
+      "preview": "You are Almond, an intelligent assistant with persistent memory.\nYou may receive retrieved memories from earlier conversations.\nUse them naturally and carefully.\nIf memory context does not contain enough information to answer confidently, say you do not know instead of inventing details.\nBe concise, factual, and direct."
+    },
+    {
+      "id": "a60712d8-878f-4f0d-9ec9-9fe2ef8c5ed0",
+      "tier": "L2_ACTIVE_RAM",
+      "tag": "EPISODIC",
+      "preview": "I do not know the details of your purchase of a Dell XPS 13 in January 2025, including its specifications or features. If you'd like, I can provide general information about the Dell XPS 13 laptop series."
+    },
+    {
+      "id": "eb48e10c-da6d-48c9-a0f8-89d53e96f156",
+      "tier": "L2_ACTIVE_RAM",
+      "tag": "EPISODIC",
+      "preview": "I don't have any specific records of our previous conversations or your personal purchases. However, I can provide general information about the Samsung Galaxy S22.\n\nThe Samsung Galaxy S22 was released on February 9, 2022. It's possible that you purchased it in January 2024 as a refurbished or used device, but I don't have any information to confirm this."
+    }
+  ],
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are Almond, an intelligent assistant with persistent memory.\nYou may receive retrieved memories from earlier conversations.\nUse them naturally and carefully.\nIf memory context does not contain enough information to answer confidently, say you do not know instead of inventing details.\nBe concise, factual, and direct.\n\n=== RELEVANT MEMORY ===\nI do not know the details of your purchase of a Dell XPS 13 in January 2025, including its specifications or features. If you'd like, I can provide general information about the Dell XPS 13 laptop series.\nI don't have any specific records of our previous conversations or your personal purchases. However, I can provide general information about the Samsung Galaxy S22.\n\nThe Samsung Galaxy S22 was released on February 9, 2022. It's possible that you purchased it in January 2024 as a refurbished or used device, but I don't have any information to confirm this.\n=== END MEMORY ==="
+    },
+    {
+      "role": "user",
+      "content": "What was the first issue I had with my new car after its first service?"
+    }
+  ],
+  "llm_response": "I do not know. Our previous conversations did not include details about your personal vehicle ownership or maintenance history. If you'd like, I can provide general information on common issues that may arise with vehicles after their first service.",
+  "retrieval_trace": {
+    "query": "What was the first issue I had with my new car after its first service?",
+    "intent_type": "TEMPORAL",
+    "intent_confidence": 0.9,
+    "used_fallback": true,
+    "total_candidates": 5,
+    "ranked_count": 5,
+    "paged_in": [],
+    "top5_scores": [
+      0.0854,
+      0.0801,
+      0.0793,
+      0.0786,
+      0.0773
+    ],
+    "top5_reasoning": [
+      "Ranked by fact confidence (0.05) and salience (0.03) (via semantic_fallback).",
+      "Ranked by fact confidence (0.05) and salience (0.03) (via semantic_fallback).",
+      "Ranked by fact confidence (0.05) and salience (0.03) (via semantic_fallback).",
+      "Ranked by fact confidence (0.05) and salience (0.03) (via semantic_fallback).",
+      "Ranked by fact confidence (0.05) and salience (0.03) (via semantic_fallback)."
+    ],
+    "route_ms": 451.95,
+    "rank_ms": 5.0,
+    "hydrate_ms": 42.0,
+    "total_ms": 498.95
+  },
+  "pool_snapshot": {
+    "count": 3,
+    "l1": 1,
+    "l2": 2,
+    "l3": 0,
+    "l4": 0
+  },
+  "system_prompt_preview": "You are Almond, an intelligent assistant with persistent memory.\nYou may receive retrieved memories from earlier conversations.\nUse them naturally and carefully.\nIf memory context does not contain enough information to answer confidently, say you do not know instead of inventing details.\nBe concise, factual, and direct.\n\n=== RELEVANT MEMORY ===\nI do not know the details of your purchase of a Dell XPS 13 in January 2025, including its specifications or features. If you'd like, I can provide general information about the Dell XPS 13 laptop series.\nI don't have any specific records of our previous conversations or your personal purchases. However, I can provide general information about the Samsung Galaxy S22.\n\nThe Samsung Galaxy S22 was released on February 9, 2022. It's possible that you purchased it in January 2024 as a refurbished or used device, but I don't have any information to confirm this.\n=== END MEMORY ==="
+}

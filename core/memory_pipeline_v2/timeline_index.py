@@ -58,7 +58,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional
 
-from fact_extractor import StructuredFact, TemporalBound, TemporalGranularity, FactType
+from core.memory_pipeline_v2.fact_extractor import StructuredFact, TemporalBound, TemporalGranularity, FactType
 
 logger = logging.getLogger(__name__)
 
@@ -168,6 +168,9 @@ _INDEXABLE_PREDICATES = {
     "purchased", "attended", "completed", "started", "finished",
     "moved_to", "works_at", "lives_in", "visited", "launched",
     "released", "joined", "left", "graduated", "hired",
+    "booked",     # safety net: if LLM emits "booked" before normalization
+    "set_up",     # "I set up my smart thermostat" - critical for Q19-type queries
+    "installed",  # "I installed X" - similar setup context
 }
 
 

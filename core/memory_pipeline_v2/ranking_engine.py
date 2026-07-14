@@ -54,10 +54,10 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional
 
-from query_analyzer import QueryIntent, IntentType
-from temporal_retriever import RetrievedMemory
-from timeline_index import TimelineIndex
-from entity_extractor import EntityRegistry
+from core.memory_pipeline_v2.query_analyzer import QueryIntent, IntentType
+from core.memory_pipeline_v2.temporal_retriever import RetrievedMemory
+from core.memory_pipeline_v2.timeline_index import TimelineIndex
+from core.memory_pipeline_v2.entity_extractor import EntityRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -159,7 +159,7 @@ class MemoryMetaStore:
         return self._data.get(memory_id)
 
     def set(self, meta: MemoryMeta):
-        self._data[memory_id] = meta
+        self._data[meta.memory_id] = meta
 
     def increment_retrieval(self, memory_id: str):
         if memory_id in self._data:
@@ -397,6 +397,20 @@ class RankingEngine:
         """
         if not memories:
             return []
+        print("\n" + "=" * 100)
+        print("RANKING ENGINE INPUT")
+        print("=" * 100)
+
+        print(f"Intent: {intent.intent_type.value}")
+        print(f"Query : {intent.raw_query}")
+        print(f"Memory Count: {len(memories)}")
+
+        for i, mem in enumerate(memories):
+            print(f"\n[INPUT {i+1}]")
+            print(f"ID: {mem.memory_id}")
+            print(f"SCORE: {mem.score:.4f}")
+            print(f"SOURCE: {mem.source}")
+            print(mem.text[:300])
 
         weights    = self._get_weights(intent)
         query_eids = self._resolve_query_entities(intent)
@@ -420,6 +434,25 @@ class RankingEngine:
 
         # Sort descending, assign ranks
         ranked.sort(key=lambda r: r.final_score, reverse=True)
+        print("\n" + "=" * 100)
+        print("RANKING ENGINE OUTPUT")
+        print("=" * 100)
+
+        for i, r in enumerate(ranked[:10], 1):
+            print(f"\n[RANK {i}]")
+            print(f"ID: {r.memory_id}")
+            print(f"FINAL SCORE: {r.final_score:.4f}")
+
+            print(
+            f"similarity={r.breakdown.similarity:.3f} "
+            f"entity={r.breakdown.entity_overlap:.3f} "
+            f"timeline={r.breakdown.timeline_relevance:.3f} "
+            f"fact={r.breakdown.fact_confidence:.3f} "
+            f"type={r.breakdown.type_match:.3f} "
+            f"salience={r.breakdown.salience:.3f}"
+            )
+
+            print(r.text[:300])
         for i, r in enumerate(ranked, 1):
             r.rank = i
 

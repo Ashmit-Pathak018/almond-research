@@ -214,28 +214,127 @@ _BRAND_PATTERN = re.compile(
     re.IGNORECASE
 )
 
+# Quoted phrases — catches names like 'Rack Fest', "Effective Time Management",
+# 'Turbocharged Tuesdays'. Handles straight and curly quote characters.
+_QUOTED_PATTERN = re.compile(
+    r"['\"\u2018\u2019\u201C\u201D]([A-Za-z][^'\"\u2018\u2019\u201C\u201D]{1,50})['\"\u2018\u2019\u201C\u201D]"
+)
+
+# Capitalized proper-noun sequences — catches single proper nouns ("Holi"),
+# multi-word names ("Sunday Mass"), and possessive/abbreviated forms
+# ("St. Mary's Church"). Matches one or more consecutive capitalized words,
+# allowing a trailing period (abbreviations) or possessive 's on each word.
+_PROPER_NOUN_PATTERN = re.compile(
+    r"\b[A-Z][a-zA-Z]*(?:\.|'[a-z]+)?(?:\s+[A-Z][a-zA-Z]*(?:\.|'[a-z]+)?)*"
+)
+
+# Words that are capitalized only because of sentence position (query start)
+# or are common question/auxiliary words — never treated as entity names
+# even when they appear capitalized.
+_COMMON_CAPITALIZED_WORDS = {
+    "how", "what", "which", "when", "where", "why", "who", "whose", "whom",
+    "did", "does", "do", "was", "were", "is", "are", "has", "have", "had",
+    "will", "would", "should", "could", "can", "the", "a", "an", "i", "my",
+    "this", "that", "these", "those", "if", "so", "you", "your", "we", "our",
+    "between", "before", "after",
+}
+
+# Articles / determiners stripped from the front of comparison-target phrases
+# so "the tomatoes" -> "tomatoes" and "first, the marigolds" -> "marigolds".
+_ARTICLE_WORDS = {"the", "a", "an", "my", "this", "that", "these", "those", "your", "our"}
+
+
 def _extract_entities_from_query(query: str) -> list[str]:
-    """Lightweight entity extraction specifically for queries."""
-    found = []
+    """
+    Extract candidate entity names from a query string.
+
+    Three passes, highest-confidence first:
+      1. Known brand/device patterns (Samsung Galaxy S22, Dell XPS 13, ...)
+      2. Quoted phrases ('Rack Fest', "Effective Time Management")
+      3. Capitalized proper-noun sequences (Holi, Sunday, St. Mary's Church)
+
+    Pass 3 excludes common question/sentence-starter words so "How", "Which",
+    "Did" etc. from the start of every query don't get treated as entities.
+
+    Substring matches already covered by a longer match are dropped
+    (e.g. "Mary" is not added separately if "Mary's Church" was found).
+    """
+    found: list[str] = []
+
+    # 1. Brand/device patterns (highest confidence, most specific)
     for m in _BRAND_PATTERN.finditer(query):
         name = m.group(0).strip()
         if name and name not in found:
             found.append(name)
-    return found
+
+    # 2. Quoted phrases
+    for m in _QUOTED_PATTERN.finditer(query):
+        name = m.group(1).strip().strip("?,.!")
+        if name and name not in found:
+            found.append(name)
+
+    # 3. Capitalized proper-noun sequences
+    for m in _PROPER_NOUN_PATTERN.finditer(query):
+        name = m.group(0).strip().strip("?,.!")
+        if not name:
+            continue
+        words = name.split()
+        # Skip if the FIRST word is a common sentence-starter/question word —
+        # this catches both standalone matches ("How") and multi-word
+        # sentence-initial constructs ("Did I", "What Is").
+        if words[0].lower() in _COMMON_CAPITALIZED_WORDS:
+            continue
+        if name not in found:
+            found.append(name)
+
+    # Drop matches that are pure substrings of a longer match already found
+    # (e.g. "Mary" inside "Mary's Church", "Rack" inside "Rack Fest").
+    deduped: list[str] = []
+    for name in found:
+        if any(name != other and name in other for other in found):
+            continue
+        deduped.append(name)
+
+    return deduped[:8]  # cap to avoid flooding downstream resolution
+
+
+def _clean_comparison_phrase(words: list[str]) -> str:
+    """
+    Strip leading filler/article words and trailing punctuation from a
+    comparison-target phrase fragment.
+
+    "started first, the tomatoes" -> "tomatoes"
+    "the Samsung Galaxy S22"       -> "Samsung Galaxy S22"
+    "the marigolds?"               -> "marigolds"
+
+    Finds the LAST article-like word in the fragment and keeps only what
+    comes after it. If no article is found, the fragment is returned as-is
+    (after punctuation stripping) — this preserves multi-word brand names
+    like "Samsung Galaxy S22" that contain no articles.
+    """
+    last_article_idx = -1
+    for i, w in enumerate(words):
+        if w.lower().strip(",.?!") in _ARTICLE_WORDS:
+            last_article_idx = i
+    if 0 <= last_article_idx < len(words) - 1:
+        words = words[last_article_idx + 1:]
+    return " ".join(words).strip("?,.! ")
+
 
 def _extract_comparison_targets(query: str) -> list[str]:
     """
     Extract the two sides of a comparison.
-    "Samsung Galaxy S22 or Dell XPS 13" → ["Samsung Galaxy S22", "Dell XPS 13"]
+    "the tomatoes or the marigolds" -> ["tomatoes", "marigolds"]
+    "Samsung Galaxy S22 or Dell XPS 13" -> ["Samsung Galaxy S22", "Dell XPS 13"]
     """
     # Try "X or Y" / "X vs Y" / "X versus Y"
     for sep in [r'\s+or\s+', r'\s+vs\.?\s+', r'\s+versus\s+']:
         match = re.split(sep, query, maxsplit=1, flags=re.IGNORECASE)
         if len(match) == 2:
-            a = match[0].strip().split()[-3:]   # last 3 words of left side
-            b = match[1].strip().split()[:3]    # first 3 words of right side
-            left  = " ".join(a).strip("?,.")
-            right = " ".join(b).strip("?,.")
+            left_words  = match[0].strip().split()[-4:]
+            right_words = match[1].strip().split()[:4]
+            left  = _clean_comparison_phrase(left_words)
+            right = _clean_comparison_phrase(right_words)
             if left and right:
                 return [left, right]
 
@@ -364,6 +463,18 @@ class QueryAnalyzer:
         if comp_targets:
             scores[IntentType.COMPARISON] += 0.15
 
+        # "Which X first, A or B?" is a temporal-comparison question that has
+        # BOTH an ordering word ("first") and a binary choice (" or ").
+        # Without this rule, the ordering word boosts TEMPORAL to 0.85 while
+        # COMPARISON only reaches 0.70, so TEMPORAL wins and comparison_retriever
+        # never runs. This pattern is unambiguously COMPARISON — we want to order
+        # two specific named items against each other, not get a timeline.
+        _which_first_re = re.compile(
+            r'\bwhich\b.{1,60}\bfirst\b.{0,80}\bor\b', re.I | re.S)
+        if _which_first_re.search(query):
+            scores[IntentType.COMPARISON] += 0.40   # pushes to ~1.10, clearly wins
+            scores[IntentType.TEMPORAL]   -= 0.20   # keeps TEMPORAL from co-winning
+
         if event_found:
             scores[IntentType.EVENT] += 0.55
         if temporal_weak and not temporal_found:
@@ -463,13 +574,44 @@ class QueryAnalyzer:
             except ValueError:
                 pass
 
+        # Defensive coercion: the LLM occasionally returns list elements
+        # that are dicts or other non-string objects instead of plain
+        # strings (e.g. [{"name": "Holi"}] instead of ["Holi"]) when its
+        # JSON output drifts from the requested schema under load. Passing
+        # a dict into dict.fromkeys() downstream (temporal_retriever's
+        # entity resolution) raises "unhashable type: 'dict'" and crashes
+        # the whole retrieval pipeline. Coerce every element to str and
+        # drop anything that can't be meaningfully stringified.
+        def _coerce_str_list(raw) -> list[str]:
+            if not isinstance(raw, list):
+                return []
+            out = []
+            for item in raw:
+                if isinstance(item, str):
+                    s = item.strip()
+                    if s:
+                        out.append(s)
+                elif isinstance(item, dict):
+                    # Try common key names a drifting LLM might use
+                    for key in ("name", "value", "entity", "text"):
+                        if key in item and isinstance(item[key], str):
+                            out.append(item[key].strip())
+                            break
+                    # else: silently drop — no recoverable string content
+                else:
+                    try:
+                        out.append(str(item))
+                    except Exception:
+                        pass
+            return out
+
         return QueryIntent(
             raw_query=query,
             intent_type=intent_type,
             confidence=float(data.get("confidence", 0.60)),
             secondary_intent=secondary,
-            entities_mentioned=list(data.get("entities_mentioned", [])),
-            temporal_markers=list(data.get("temporal_markers", [])),
-            comparison_targets=list(data.get("comparison_targets", [])),
+            entities_mentioned=_coerce_str_list(data.get("entities_mentioned", [])),
+            temporal_markers=_coerce_str_list(data.get("temporal_markers", [])),
+            comparison_targets=_coerce_str_list(data.get("comparison_targets", [])),
             analysis_method="llm",
         )

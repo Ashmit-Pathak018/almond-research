@@ -1,0 +1,24 @@
+[
+  {
+    "date": "2026-06-08 12:20",
+    "dataset": "data/longmemeval_oracle.json",
+    "limit": 5,
+    "ablation": "none",
+    "accuracy": 100.0,
+    "avg_latency_ms": 45417.18,
+    "avg_l2_peak": 22,
+    "avg_pollution": 0.0,
+    "report_file": "longmem_report_1780901402.json"
+  },
+  {
+    "date": "2026-06-08 12:05",
+    "dataset": "data/longmemeval_oracle.json",
+    "limit": 5,
+    "ablation": "none",
+    "accuracy": 0.0,
+    "avg_latency_ms": 0.0,
+    "avg_l2_peak": 0.0,
+    "avg_pollution": 0.0,
+    "report_file": "longmem_report_1780900541.json"
+  }
+]
