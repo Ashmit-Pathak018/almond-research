@@ -1,0 +1,16 @@
+# Core
+pydantic>=2.13
+python-dotenv>=1.2
+python-dateutil>=2.9
+
+# Memory
+chromadb>=1.5
+
+# Utilities
+numpy>=2.2
+requests>=2.33
+tqdm>=4.67
+
+# LLM Clients
+openai>=2.32
+anthropic>=0.97

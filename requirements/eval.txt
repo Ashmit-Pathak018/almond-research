@@ -1,0 +1,6 @@
+-r runtime.txt
+
+pandas>=2.2
+matplotlib>=3.9
+pytest>=8.0
+tabulate>=0.9
