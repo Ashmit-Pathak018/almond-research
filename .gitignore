@@ -1,52 +1,162 @@
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
+# ─────────────────────────────────────────────────────────────
+# Almond Research
+# ─────────────────────────────────────────────────────────────
 
-# Virtual environment
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environments
 .venv/
 venv/
+env/
+ENV/
 
+# Python packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# =========================
+# IDEs
+# =========================
+.vscode/
+.idea/
+*.code-workspace
+
+# =========================
+# Operating System
+# =========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =========================
+# Environment / Secrets
+# =========================
+.env
+.env.*
+!.env.example
+
+*.pem
+*.key
+*.crt
+
+# =========================
 # Logs
-logs/
+# =========================
 *.log
-.almond_live.log
+logs/
+.launcher_logs/
 
-# Databases
+# =========================
+# Runtime
+# =========================
+*.pid
+*.seed
+*.out
+
+# =========================
+# SQLite / Local Databases
+# =========================
 *.db
 *.sqlite
 *.sqlite3
 
-# Chroma
-almond_chroma/
-almond_chroma_db/
+# =========================
+# ChromaDB
+# =========================
+**/almond_chroma_db_2/
+**/almond_desktop_chroma/
+**/chroma/
+**/chroma_db/
+**/*_chroma/
+**/*_chroma_db/
 
-# Generated benchmark outputs
-longmem_eval_results/
+# =========================
+# Evaluation
+# =========================
+.eval_cache/
+runs/
 results/
-Results_folder/
+checkpoints/
+*.jsonl
 
-# IDE
-.vscode/
-.idea/
+# Generated experiment outputs
+accuracy.png
+latency.png
+summary.json
+results.csv
+scored_results.json
 
-# OS files
-.DS_Store
-Thumbs.db
+# =========================
+# Temporary files
+# =========================
+*.tmp
+*.bak
+*.old
+
+# =========================
+# Backup folders
+# =========================
+_migration_backup_*/
+archive/xray_runs/
+
+# =========================
+# Jupyter
+# =========================
+.ipynb_checkpoints/
+
+# =========================
+# Local helper files
+# =========================
+files.txt
+structure.txt
+
+# =========================
+# Node / Tauri (future)
+# =========================
+node_modules/
+target/
+src-tauri/target/
+
+# =========================
+# Cache
+# =========================
+.cache/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# =========================
+# Keep these tracked
+# =========================
+!requirements.txt
+!requirements/
+!README.md
+!.gitignore
 
 # Datasets
 data/
 
-# Results
-Results_folder/
-results/
-longmem_eval_results/
-
-# Databases
-*.db
-*.sqlite
-*.sqlite3
-
 # Datasets
 longmemeval_dataset.json
+
+# Evaluation outputs
+archive/longmem_eval_results/
+archive/Results_folder/
+
+eval/longmem_eval_results/
+longmem_eval_results/
+
+*.png
+stress_report.json
+stress_summary.txt
+partial_report.json
+longmem_report*.json
+full_run_log_*.txt
