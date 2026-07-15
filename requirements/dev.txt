@@ -1,11 +1,7 @@
 -r runtime.txt
 
-fastapi>=0.138
-uvicorn>=0.46
-python-multipart>=0.0.29
-
-black>=24
-ruff>=0.5
-mypy>=1.10
-ipython>=8
-pre-commit>=3
+ipython==9.5.0
+black==25.1.0
+ruff==0.12.8
+mypy==1.17.1
+pre-commit==4.3.0

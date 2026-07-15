@@ -1,16 +1,15 @@
-# Core
-pydantic>=2.13
-python-dotenv>=1.2
-python-dateutil>=2.9
+fastapi==0.138.0
+uvicorn==0.46.0
+python-multipart==0.0.29
+python-dotenv==1.2.2
+pydantic==2.13.3
 
-# Memory
-chromadb>=1.5
+chromadb==1.5.8
 
-# Utilities
-numpy>=2.2
-requests>=2.33
-tqdm>=4.67
+python-dateutil==2.9.0.post0
+numpy==2.2.6
+requests==2.33.1
+tqdm==4.67.3
 
-# LLM Clients
-openai>=2.32
-anthropic>=0.97
+openai==2.32.0
+anthropic==0.97.0
