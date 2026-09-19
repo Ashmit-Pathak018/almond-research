@@ -337,4 +337,4 @@ and what should be forgotten
 
 ---
 
-<p align="center"><sub>Built from VIT · Python · SQLite · Chroma · too many debugging sessions</sub></p>
+<p align="center"><sub>Built with Love · Python · SQLite · Chroma · too many debugging sessions</sub></p>
