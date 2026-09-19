@@ -37,6 +37,7 @@ from core.storage.migrations.migration_manager import apply_migrations
 import core.storage.migrations.migration_001_v2_to_v3
 import core.storage.migrations.migration_002_knowledge_layer
 import core.storage.migrations.migration_003_fts5
+import core.storage.migrations.migration_004_ingestion_jobs
 
 logger = logging.getLogger(__name__)
 
