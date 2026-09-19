@@ -122,7 +122,7 @@ class MemoryController:
 
         # ── Phase 3: timeline store + retrieval ───────────────────────────
         self._timeline     = TimelineIndex(db_path)
-        self._analyzer     = QueryAnalyzer(llm=llm_adapter)
+        self._analyzer     = QueryAnalyzer(llm=llm_adapter, entity_registry=self._entity_reg)
         self._temporal_ret = TemporalRetriever(self._timeline, self._entity_reg, self)
         self._comp_ret     = ComparisonRetriever(self._entity_reg, self)
         self._audit        = RetrievalAuditLog(audit_db)
@@ -131,6 +131,7 @@ class MemoryController:
             timeline_index=self._timeline,
             meta_store=self._meta_store,
             audit_log=self._audit,
+            block_lookup=self.store.get_by_id,
         )
         # Full ranked-candidate ID list from the most recent _smart_page_in
         # call, regardless of hydration status. Drives prompt prioritisation
@@ -139,6 +140,7 @@ class MemoryController:
         # recency) is used correctly on the very first turn, before any
         # retrieval has run.
         self._last_ranked_ids: list[str] = []
+        self._last_reasoning_context = None
 
         # Session trace — kept for observability / eval
         self.last_retrieval_trace: dict[str, Any] = {}
@@ -302,6 +304,14 @@ class MemoryController:
         if hasattr(self.store, "load_entity_registry"):
             self.store.load_entity_registry(self._entity_reg)
 
+        # ── PROBE: _rehydrate result ─────────────────────────────────────────
+        print(f"[PROBE][_rehydrate] L1={len(self._l1)} L2={len(self._l2)} entities={len(self._entity_reg.all_entities())}")
+        samsung = self._entity_reg.find_by_name("Samsung Galaxy S22")
+        print(f"[PROBE][_rehydrate] 'Samsung Galaxy S22' in registry: {samsung is not None} "
+              f"(match={samsung.name if samsung else 'NONE'})")
+        # ─────────────────────────────────────────────────────────────────────
+
+
     # -----------------------------------------------------------------------
     # Public API
     # -----------------------------------------------------------------------
@@ -445,7 +455,10 @@ class MemoryController:
         Results are stored in the new parallel tables (facts + entity registry).
         This never mutates the MemoryBlock itself.
         """
-        ts = datetime.now()
+        # Use the block's actual creation time as the temporal anchor.
+        # This is CRITICAL during eval/benchmark replay where memories
+        # have historical timestamps (e.g. 2024), so "last month" resolves correctly.
+        ts = datetime.fromtimestamp(block.created_at)
 
         # Classify (gives us memory_type for downstream use)
         raw = CRaw(
@@ -526,7 +539,7 @@ class MemoryController:
         paged_in: list[str] = []
         t0 = time.time()
 
-        # ── Step 1: Analyse intent ─────────────────────────────────────────
+        # -- Step 1: Analyse intent ------------------------------------------
         intent = self._analyzer.analyze(user_message)
         intent_time = time.time() - t0
         self._record_stage_time("retrieval.intent_analysis", intent_time * 1000)
@@ -534,6 +547,11 @@ class MemoryController:
             "[RETRIEVAL] intent=%s conf=%.2f entities=%s",
             intent.intent_type.value, intent.confidence, intent.entities_mentioned,
         )
+        # -- PROBE: Intent analysis result -----------------------------------
+        print(f"[PROBE][QueryAnalyzer] intent={intent.intent_type.value} "
+              f"entities_mentioned={intent.entities_mentioned} "
+              f"comparison_targets={intent.comparison_targets}")
+        # --------------------------------------------------------------------
 
         # ── Step 2: Route to correct retriever ────────────────────────────
         t_route = time.time()
@@ -566,11 +584,21 @@ class MemoryController:
         route_time = time.time() - t_route
         self._record_stage_time(f"retrieval.route_{intent.intent_type.value.lower()}", route_time * 1000)
 
+        # ── PROBE: After routing ────────────────────────────────────────────
+        print(f"[PROBE][_smart_page_in] after routing: candidates={len(candidates)} intent={intent.intent_type.value}")
+        if candidates:
+            print(f"[PROBE][_smart_page_in] candidate ids={[c.memory_id[:8] for c in candidates[:5]]}")
+        # ───────────────────────────────────────────────────────────────────
+
         # ── Step 3: Rank with intent-weighted signals ──────────────────────
         t_rank = time.time()
         ranked = self._rank_engine.rank(candidates, intent, used_fallback=used_fallback)
         rank_time = time.time() - t_rank
         self._record_stage_time("retrieval.rank_engine", rank_time * 1000)
+
+        # ── PROBE: After ranking ────────────────────────────────────────────
+        print(f"[PROBE][_smart_page_in] after ranking: ranked={len(ranked)}")
+        # ───────────────────────────────────────────────────────────────────
 
         # ── Step 4: Hydrate and promote to L2 ─────────────────────────────
         t_hydrate = time.time()
@@ -578,7 +606,14 @@ class MemoryController:
             r.memory_id for r in ranked
             if r.memory_id not in self._l2      # FIX 4: duplicate guard
         ]
+        # ── PROBE: Hydration inputs ────────────────────────────────────────
+        already_in_l2 = [r.memory_id for r in ranked if r.memory_id in self._l2]
+        print(f"[PROBE][_smart_page_in] hydration: ids_to_hydrate={len(ids_to_hydrate)} already_in_l2={len(already_in_l2)} l2_size={len(self._l2)}")
+        # ─────────────────────────────────────────────────────────────────
         hydrated = self.store.get_blocks_by_ids(ids_to_hydrate) if ids_to_hydrate else []
+        # ── PROBE: After get_blocks_by_ids ───────────────────────────────
+        print(f"[PROBE][_smart_page_in] store.get_blocks_by_ids({len(ids_to_hydrate)}) returned {len(hydrated)} blocks")
+        # ─────────────────────────────────────────────────────────────────
 
         # Orphan detection: IDs Chroma knows about but SQLite doesn't.
         # This happens when Chroma persists across runs but SQLite is reset.
@@ -623,6 +658,11 @@ class MemoryController:
             paged_in.append(block.id)
             logger.info("[PAGE-IN] %s promoted. intent=%s", block.id[:8], intent.intent_type.value)
 
+        # ── PROBE: Final paged_in count ────────────────────────────────
+        print(f"[PROBE][_smart_page_in] paged_in={len(paged_in)} _last_ranked_ids (next)={len(ranked)}")
+        print(f"[PROBE][_smart_page_in] L2 after page-in: {len(self._l2)} blocks")
+        # ─────────────────────────────────────────────────────────────────
+
         # ranked_ids captures EVERY memory the ranking engine selected as
         # relevant, regardless of whether it needed fresh hydration from
         # cold storage. paged_in only tracks the subset that needed
@@ -635,6 +675,7 @@ class MemoryController:
         # the ranking engine's output entirely. See chat() below: this list
         # is now what actually drives priority_ids, not paged_in.
         self._last_ranked_ids = [r.memory_id for r in ranked]
+        self._last_reasoning_context = getattr(raw_result, "reasoning_context", None) if 'raw_result' in locals() else None
 
         hydrate_time = time.time() - t_hydrate
         self._record_stage_time("retrieval.hydrate_promote", hydrate_time * 1000)

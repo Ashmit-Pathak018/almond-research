@@ -165,6 +165,10 @@ CREATE INDEX IF NOT EXISTS idx_eem_entity     ON entity_event_map(entity_id);
 
 # Predicates that represent indexable events (have a meaningful temporal component)
 _INDEXABLE_PREDICATES = {
+    # Canonical event types
+    "ACQUIRE", "START", "FINISH", "MOVE", "WORK", "VISIT",
+    
+    # Legacy fallbacks
     "purchased", "attended", "completed", "started", "finished",
     "moved_to", "works_at", "lives_in", "visited", "launched",
     "released", "joined", "left", "graduated", "hired",
@@ -269,11 +273,10 @@ class TimelineIndex:
             logger.debug("store_fact: skipping low-confidence temporal fact (conf=%.2f)", fact.temporal_bound.confidence)
             return None
 
-        # Only index predicates that represent real events
-        if fact.predicate not in _INDEXABLE_PREDICATES:
-            logger.debug("store_fact: predicate %r not indexable", fact.predicate)
-            return None
-
+        # Remove the whitelist check. If it has a temporal bound, it's an event.
+        # This fixes the issue where temporal facts with unmapped predicates 
+        # (like "serviced", "had issue") were silently dropped.
+        
         event = TimelineEvent(
             id=str(uuid.uuid4()),
             memory_id=fact.memory_id,

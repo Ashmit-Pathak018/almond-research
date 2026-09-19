@@ -1,0 +1,68 @@
+﻿
+[FULL LOG] Writing complete run output to: longmem_eval_results\full_run_log_1785783960.txt
+[PROBE][_rehydrate] L1=0 L2=0 entities=0
+[PROBE][_rehydrate] 'Samsung Galaxy S22' in registry: False (match=NONE)
+[PROBE][_rehydrate] L1=1 L2=36 entities=109
+[PROBE][_rehydrate] 'Samsung Galaxy S22' in registry: True (match=Samsung Galaxy S22)
+[DIAGNOSTIC] Timeline events indexed : 1
+[DIAGNOSTIC] Entities in registry    : 109
+[DIAGNOSTIC] Entity names (first 20) : ['area', 'way', 'first', 'Yelp', 'Google Reviews', 'Facebook Reviews', 
+'National Institute of Automotive Service Excellence', 'International Detailing Association (IDA)', 'car', 'paint', 
+'interior', 'life', 'next', 'frequency', 'good', 'Shell', 'rewards', 'my office', 'Samsung Galaxy S22', 'Ashmit']
+[PROBE][QueryAnalyzer] intent=TEMPORAL entities_mentioned=[] comparison_targets=[]
+[PROBE][TemporalRetriever] intent=TEMPORAL entities_in_registry=109 resolved_entities=0 ids=[]
+[PROBE][TemporalRetriever] intent.entities_mentioned=[] intent.comparison_targets=[]
+[PROBE][TemporalRetriever] routing -> _semantic_fallback (no entities resolved)
+[PROBE][_semantic_fallback] store.semantic_search returned 0 raw results
+[PROBE][TemporalRetriever] semantic_fallback returned 0 memories
+[PROBE][_smart_page_in] after routing: candidates=0 intent=TEMPORAL
+[PROBE][_smart_page_in] after ranking: ranked=0
+[PROBE][_smart_page_in] hydration: ids_to_hydrate=0 already_in_l2=0 l2_size=0
+[PROBE][_smart_page_in] store.get_blocks_by_ids(0) returned 0 blocks
+[PROBE][_smart_page_in] paged_in=0 _last_ranked_ids (next)=0
+[PROBE][_smart_page_in] L2 after page-in: 0 blocks
+[TRACE] intent=TEMPORAL conf=0.9 fallback=True
+[TRACE] candidates=0 ranked=0 paged_in=0
+[JUDGE] [FAIL @ ABSTENTION_GATE] Opening abstention detected: "i don't have enough information" appears in the first 
+14 words - model made no attempt to answer.
+EXPECTED  : GPS system not functioning correctly
+ACTUAL    : I don't have enough information to recall any issues you may have experienced with your car. Our 
+conversation started here and I don't have any prior memories of discussing a car or its maintenance. If you'd like to 
+share more about the issue, I'll do my best to help.
+GATE      : ABSTENTION_GATE
+RESULT    : FAIL
+[PROBE][_rehydrate] L1=0 L2=0 entities=0
+[PROBE][_rehydrate] 'Samsung Galaxy S22' in registry: False (match=NONE)
+[DIAGNOSTIC] Timeline events indexed : 0
+[DIAGNOSTIC] Entities in registry    : 64
+[DIAGNOSTIC] Entity names (first 20) : ['Samsung Galaxy S22', 'Ashmit', 'Todoist', 'Trello', 'Asana', 'Wunderlist', 
+'RescueTime', 'strategies', 'Freedom', 'SelfControl', 'StayFocusd', 'biggest', 'uBlock Origin', 'News Feed 
+Eradicator', 'Freedom', 'SelfControl', 'Cold Turkey', 'StayFocusd', 'LeechBlock', 'phone']
+[PROBE][QueryAnalyzer] intent=COMPARISON entities_mentioned=['Effective Time Management', 'Data Analysis using 
+Python'] comparison_targets=["'Effective Time Management' workshop", "'Data Analysis using"]
+[PROBE][ComparisonRetriever] intent=COMPARISON registry_size=64 comparison_targets=["'Effective Time Management' 
+workshop", "'Data Analysis using"] resolved_targets=2 target_names=['workshop', 'data analysis']
+[PROBE][ComparisonRetriever] entity='workshop' memories=0 fallback=False
+[PROBE][ComparisonRetriever] entity='data analysis' memories=0 fallback=False
+[PROBE][ComparisonRetriever] total flat_memories=0
+[PROBE][_smart_page_in] after routing: candidates=0 intent=COMPARISON
+[PROBE][_smart_page_in] after ranking: ranked=0
+[PROBE][_smart_page_in] hydration: ids_to_hydrate=0 already_in_l2=0 l2_size=0
+[PROBE][_smart_page_in] store.get_blocks_by_ids(0) returned 0 blocks
+[PROBE][_smart_page_in] paged_in=0 _last_ranked_ids (next)=0
+[PROBE][_smart_page_in] L2 after page-in: 0 blocks
+[TRACE] intent=COMPARISON conf=0.92 fallback=False
+[TRACE] candidates=0 ranked=0 paged_in=0
+[JUDGE] [FAIL @ ABSTENTION_GATE] Opening abstention detected: "i don't have enough information" appears in the first 
+14 words - model made no attempt to answer.
+EXPECTED  : 'Data Analysis using Python' webinar
+ACTUAL    : I don't have enough information to determine which event you attended first. Can you provide more context 
+or details about these events, such as dates or time references?
+GATE      : ABSTENTION_GATE
+RESULT    : FAIL
+FINAL RESULTS
+  "questions": 2,
+Saved to: longmem_eval_results\longmem_report_1785784202.json
+[FULL LOG] Complete run output saved to: longmem_eval_results\full_run_log_1785783960.txt
+
+

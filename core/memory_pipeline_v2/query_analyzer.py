@@ -48,6 +48,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional
 
+from core.memory_pipeline_v2.entity_extractor import EntityRegistry
 logger = logging.getLogger(__name__)
 
 
@@ -236,7 +237,8 @@ _COMMON_CAPITALIZED_WORDS = {
     "did", "does", "do", "was", "were", "is", "are", "has", "have", "had",
     "will", "would", "should", "could", "can", "the", "a", "an", "i", "my",
     "this", "that", "these", "those", "if", "so", "you", "your", "we", "our",
-    "between", "before", "after",
+    "between", "before", "after", "first", "last", "next", "previous", "earlier", "later",
+    "oldest", "newest", "which", "came", "good", "bad", "way", "area", "life",
 }
 
 # Articles / determiners stripped from the front of comparison-target phrases
@@ -244,7 +246,7 @@ _COMMON_CAPITALIZED_WORDS = {
 _ARTICLE_WORDS = {"the", "a", "an", "my", "this", "that", "these", "those", "your", "our"}
 
 
-def _extract_entities_from_query(query: str) -> list[str]:
+def _extract_entities_from_query(query: str, registry: Optional[EntityRegistry] = None) -> list[str]:
     """
     Extract candidate entity names from a query string.
 
@@ -286,6 +288,23 @@ def _extract_entities_from_query(query: str) -> list[str]:
             continue
         if name not in found:
             found.append(name)
+
+    # 4. Known registry entities (fallback/complement)
+    # If a known entity from previous ingestion appears exactly in the query, include it.
+    if registry:
+        lower_query = query.lower()
+        # Word boundaries to avoid partial matches (e.g., 'car' in 'carpet')
+        for entity in registry.all_entities():
+            entity_name_lower = entity.name.lower()
+            if entity_name_lower in _COMMON_CAPITALIZED_WORDS:
+                continue
+            if len(entity_name_lower) < 3:
+                continue
+            if entity_name_lower in lower_query:
+                # Use regex to ensure word boundaries
+                pattern = r'\b' + re.escape(entity_name_lower) + r'\b'
+                if re.search(pattern, lower_query) and entity.name not in found:
+                    found.append(entity.name)
 
     # Drop matches that are pure substrings of a longer match already found
     # (e.g. "Mary" inside "Mary's Church", "Rack" inside "Rack Fest").
@@ -366,9 +385,10 @@ class QueryAnalyzer:
     # intent.temporal_markers == ["first"]
     """
 
-    def __init__(self, llm=None, heuristic_only: bool = False):
+    def __init__(self, llm=None, heuristic_only: bool = False, entity_registry: Optional[EntityRegistry] = None):
         self._llm            = llm
         self._heuristic_only = heuristic_only or (llm is None)
+        self._entity_registry = entity_registry
 
     # ------------------------------------------------------------------
     # Public API
@@ -428,7 +448,7 @@ class QueryAnalyzer:
         factual_found     = [p.pattern for p in _RE_FACTUAL           if p.search(lower)]
 
         all_temporal = temporal_found + temporal_weak
-        entities     = _extract_entities_from_query(query)
+        entities     = _extract_entities_from_query(query, registry=self._entity_registry)
         comp_targets = _extract_comparison_targets(query) if (comparison_found or comparison_weak) else []
 
         # --- Score each intent ---

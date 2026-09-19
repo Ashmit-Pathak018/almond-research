@@ -208,6 +208,8 @@ class QuestionResult:
     l2_peak:          int
     l3_peak:          int
     avg_pollution:    float
+    retrieval_hit:    bool = False  # Fix 5
+    retrieval_top_score: float = 0.0 # Fix 5
     judge_gate:       str = ""    # which judge_v2 layer produced the verdict
     judge_reasoning:  str = ""    # human-readable explanation from that layer
     judge_extracted:  str = ""    # Layer 3 extracted claim, if reached
@@ -254,7 +256,7 @@ def llm_judge(question: str, expected_answer: str, model_response: str) -> bool:
     return llm_judge_full(question, expected_answer, model_response).passed
 
 
-def llm_judge_full(question: str, expected_answer: str, model_response: str) -> "JudgeResult":
+def llm_judge_full(question: str, expected_answer: str, model_response: str, question_type: str = None) -> "JudgeResult":
     """Same as llm_judge() but returns the full JudgeResult with gate/reasoning."""
     return _judge_v2(
         question=question,
@@ -262,6 +264,7 @@ def llm_judge_full(question: str, expected_answer: str, model_response: str) -> 
         model_response=model_response,
         llm_api_url=LLM_API_URL,
         verbose=True,
+        question_type=question_type,
     )
 
 
@@ -501,13 +504,19 @@ def run_longmem_eval(dataset_path: str, limit: int, ablation: str = "none"):
                 almond = create_almond()
                 apply_ablation(almond, ablation)
 
+                # Fix 4: Pre-initialize defaults so a crash can still be logged as a failure
                 question = instance["question"]
-                answer   = instance["answer"]
+                answer   = str(instance["answer"])  # Fix 1: coerce int/float expected_answer to str
                 q_type   = instance["question_type"]
                 sessions = instance["haystack_sessions"]
-
-                # FIX 2: l2_peak measured AFTER chat() — initialise here
-                l3_peak          = 0
+                
+                model_response = "[ERROR] Did not complete"
+                latency_ms = None
+                l2_peak = 0
+                l3_peak = 0
+                pollution_history = []
+                trace = None
+                passed = False
                 pollution_history = []
 
                 # ================================================================
@@ -558,19 +567,32 @@ def run_longmem_eval(dataset_path: str, limit: int, ablation: str = "none"):
                         if _cached_db.exists():
                             shutil.copy2(str(_cached_db), _db_name)
                     # Fresh empty Chroma dir — avoids Windows tenant corruption.
-                    # Vector semantic fallback unavailable on cache hits, but
-                    # entity+timeline retrieval (from restored SQLite) is intact.
+                    # FIX 4: Rebuild Chroma from the restored SQLite database.
                     _restored_chroma = str(fresh_chroma_dir())
                     almond = create_almond(chroma_path=_restored_chroma)
                     apply_ablation(almond, ablation)
+                    
+                    # Rehydrate Chroma by looping over stored blocks and triggering save()
+                    if almond.controller.store:
+                        for tier in [MemoryTier.L2_ACTIVE_RAM, MemoryTier.L3_VIRTUAL_SWAP]:
+                            blocks = almond.controller.store.get_all(tier)
+                            for b in blocks:
+                                almond.controller.store.save(b)
+                                
                     pool    = almond.controller.dump_pool()
                     l3_peak = sum(1 for x in pool if x["tier"] == "L3_VIRTUAL_SWAP")
 
                 else:
                     # CACHE MISS: run full replay then snapshot for future runs
+                    from datetime import datetime, timedelta
+                    anchor_date = datetime(2024, 1, 1).timestamp()
+                    SESSION_INTERVAL_DAYS = 7
+                    
                     for s_idx, session in enumerate(sessions, 1):
                         if s_idx % 10 == 0 or s_idx == len(sessions):
                             print(f"  [SESSION {s_idx}/{len(sessions)}]")
+
+                        simulated_time = anchor_date + (s_idx * SESSION_INTERVAL_DAYS * 86400)
 
                         for turn in session:
                             content = turn["content"]
@@ -589,6 +611,7 @@ def run_longmem_eval(dataset_path: str, limit: int, ablation: str = "none"):
                                 importance_score=6.0,
                                 keywords=[],
                                 tier=MemoryTier.L3_VIRTUAL_SWAP,
+                                created_at=simulated_time,
                             )
 
                             # Track L3 peak during replay (L2 peak tracked after chat)
@@ -616,23 +639,58 @@ def run_longmem_eval(dataset_path: str, limit: int, ablation: str = "none"):
                 print(f"[MEMORIES]    {len(almond.controller._l2)} in L2")
 
                 # ================================================================
-                # DIAGNOSTIC: post-replay extraction snapshot
-                # Verifies whether fact_extractor / entity_extractor / timeline_index
-                # actually ran during replay, before we ask the question.
-                # Decision tree:
-                #   timeline_count=0 AND entity_count=0 -> extraction not running
-                #   timeline_count=0 BUT entity_count>0 -> entities found, no
-                #       indexable temporal facts extracted from them
-                #   both >0 but timeline_relevance=0 in ranking later ->
-                #       entity resolution failure in temporal_retriever
+                # HEALTH DASHBOARD: post-replay subsystem snapshot
+                # Shows the state of every storage subsystem BEFORE the
+                # question is asked. When something drops to 0, you
+                # immediately know which subsystem failed.
                 # ================================================================
                 timeline_count = almond.controller._timeline.count()
                 entity_count   = len(almond.controller._entity_reg)
                 entity_names   = [e.name for e in almond.controller._entity_reg.all_entities()][:20]
 
-                print(f"[DIAGNOSTIC] Timeline events indexed : {timeline_count}")
-                print(f"[DIAGNOSTIC] Entities in registry    : {entity_count}")
-                print(f"[DIAGNOSTIC] Entity names (first 20) : {entity_names}")
+                # Memory blocks by tier (SQLite)
+                _tier_counts = almond.controller.store.tier_counts() if almond.controller.store else {}
+                _sqlite_total = sum(_tier_counts.values())
+                _l2_mem = len(almond.controller._l2)
+                _l1_mem = len(almond.controller._l1)
+
+                # Structured facts count
+                try:
+                    _facts_count = almond.controller.store._conn.execute(
+                        "SELECT count(*) FROM structured_facts"
+                    ).fetchone()[0] if almond.controller.store else 0
+                except Exception:
+                    _facts_count = "?"
+
+                # Entity-event links
+                try:
+                    _eem_count = almond.controller._timeline._mem_conn.execute(
+                        "SELECT count(*) FROM entity_event_map"
+                    ).fetchone()[0] if almond.controller._timeline._in_memory else 0
+                except Exception:
+                    try:
+                        import sqlite3 as _sq
+                        _tc = _sq.connect(almond.controller._timeline._db_path)
+                        _eem_count = _tc.execute("SELECT count(*) FROM entity_event_map").fetchone()[0]
+                        _tc.close()
+                    except Exception:
+                        _eem_count = "?"
+
+                # Chroma documents
+                try:
+                    _chroma_count = almond.controller.store._collection.count() if almond.controller.store else 0
+                except Exception:
+                    _chroma_count = "?"
+
+                print(f"[HEALTH] Memory blocks in SQLite : {_sqlite_total}  {_tier_counts}")
+                print(f"[HEALTH] L1 blocks (in-memory)   : {_l1_mem}")
+                print(f"[HEALTH] L2 blocks (in-memory)   : {_l2_mem}")
+                print(f"[HEALTH] Timeline events         : {timeline_count}")
+                print(f"[HEALTH] Facts extracted          : {_facts_count}")
+                print(f"[HEALTH] Entity-event links       : {_eem_count}")
+                print(f"[HEALTH] Entities in registry     : {entity_count}")
+                print(f"[HEALTH] Chroma documents         : {_chroma_count}")
+                print(f"[HEALTH] Entity names (first 20)  : {entity_names}")
 
                 # ================================================================
                 # QUESTION  (with watchdog timeout)
@@ -698,7 +756,7 @@ def run_longmem_eval(dataset_path: str, limit: int, ablation: str = "none"):
                 # JUDGE
                 # ================================================================
                 judge_t0      = time.time()
-                judge_result  = llm_judge_full(question, answer, model_response)
+                judge_result  = llm_judge_full(question, answer, model_response, question_type=q_type)
                 passed        = judge_result.passed
                 judge_time_ms = (time.time() - judge_t0) * 1000
 
@@ -707,11 +765,18 @@ def run_longmem_eval(dataset_path: str, limit: int, ablation: str = "none"):
                 print(f"ACTUAL    : {model_response[:300]}")
                 print(f"GATE      : {judge_result.gate}")
                 print(f"REASONING : {judge_result.reasoning}")
-                print(f"RESULT    : {'PASS ✓' if passed else 'FAIL ✗'}")
+                print(f"RESULT    : {'PASS' if passed else 'FAIL'}")
 
                 # ================================================================
                 # RESULT
                 # ================================================================
+                # Fix 5: track abstention reason via retrieval hit
+                retrieval_hit = False
+                retrieval_top_score = 0.0
+                if trace and getattr(trace, 'top5_scores', None):
+                    retrieval_hit = True
+                    retrieval_top_score = trace.top5_scores[0]
+
                 result = QuestionResult(
                     index=idx,
                     question_type=q_type,
@@ -719,7 +784,7 @@ def run_longmem_eval(dataset_path: str, limit: int, ablation: str = "none"):
                     expected_answer=answer,
                     model_response=model_response[:500],
                     passed=passed,
-                    latency_ms=round(latency_ms, 2),
+                    latency_ms=round(latency_ms, 2) if latency_ms is not None else 0.0,
                     replay_time_ms=round(replay_time_ms, 2),
                     judge_time_ms=round(judge_time_ms, 2),
                     l2_peak=l2_peak,
@@ -727,6 +792,8 @@ def run_longmem_eval(dataset_path: str, limit: int, ablation: str = "none"):
                     avg_pollution=round(
                         statistics.mean(pollution_history) if pollution_history else 0.0, 3
                     ),
+                    retrieval_hit=retrieval_hit,
+                    retrieval_top_score=retrieval_top_score,
                     judge_gate=judge_result.gate,
                     judge_reasoning=judge_result.reasoning,
                     judge_extracted=judge_result.extracted_claim or "",
@@ -747,7 +814,42 @@ def run_longmem_eval(dataset_path: str, limit: int, ablation: str = "none"):
                 save_partial_report(partial_summary, question_results, retrieval_exports)
 
             except Exception as e:
-                print(f"[QUESTION FAILURE] Skipping instance {idx}: {e}")
+                import traceback
+                print(f"[QUESTION FAILURE] Skipping instance {idx} (Recorded as FAIL): {e}")
+                print(traceback.format_exc())
+                
+                # Fix 4: Record the failure instead of silently dropping it
+                result = QuestionResult(
+                    index=idx,
+                    question_type=q_type,
+                    question=question,
+                    expected_answer=answer,
+                    model_response=model_response[:500] if model_response else "[ERROR] Crash before response",
+                    passed=False,
+                    latency_ms=round(latency_ms, 2) if latency_ms is not None else 0.0,
+                    replay_time_ms=round(replay_time_ms, 2) if 'replay_time_ms' in locals() else 0.0,
+                    judge_time_ms=0.0,
+                    l2_peak=l2_peak if 'l2_peak' in locals() else 0,
+                    l3_peak=l3_peak if 'l3_peak' in locals() else 0,
+                    avg_pollution=0.0,
+                    retrieval_hit=False,
+                    retrieval_top_score=0.0,
+                    judge_gate="CRASH",
+                    judge_reasoning=f"Eval script crashed: {e}",
+                    judge_extracted="",
+                )
+                question_results.append(result)
+                
+                # Autosave even on crash
+                partial_summary = {
+                    "completed_questions": len(question_results),
+                    "current_accuracy": round(
+                        sum(x.passed for x in question_results)
+                        / len(question_results) * 100, 2
+                    ) if question_results else 0.0,
+                }
+                save_partial_report(partial_summary, question_results, retrieval_exports)
+                
                 continue
             finally:
                 if almond:

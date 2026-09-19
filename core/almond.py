@@ -20,6 +20,7 @@ import openai
 from core.memory_block import MemoryBlock, MemoryTag, MemoryTier
 from core.memory_controller_v2 import MemoryController, EvictionPolicy
 from core.memory_store import MemoryStore
+from core.memory_worker import MemoryWorker, IngestionTask
 
 # ── Phase 1: hygiene gate ──────────────────────────────────────────────────
 # Only these two imports are needed for Phase 1.
@@ -133,8 +134,140 @@ class AlmondConfig:
     )
 
 
+
+# ============================================================================
+# PHASE 2.1: REAL-TIME CONVERSATION PIPELINE
+# ============================================================================
+
+@dataclass
+class PostChatContext:
+    user_message: str
+    assistant_reply: str = ""
+    context_blocks: list[MemoryBlock] = field(default_factory=list)
+    store_user_message: bool = True
+    start_time: float = 0.0
+    latency_ms: float = 0.0
+
+class ConversationPipeline:
+    def __init__(self, almond: "Almond"):
+        self.almond = almond
+
+    def prepare(self, user_message: str) -> PostChatContext:
+        start_time = time.time()
+        self.almond._turn_index += 1
+
+        # Phase 1: user message hygiene gate
+        _user_hraw = HRaw(
+            id=f"u-{self.almond._turn_index}",
+            source=HSource.USER,
+            text=user_message,
+            timestamp=__import__("datetime").datetime.now(),
+            session_id=self.almond.config.session_id or "default",
+            conversation_turn=self.almond._turn_index,
+        )
+        _user_hygiene = _hygiene.evaluate(_user_hraw)
+        store_user_message = _user_hygiene.verdict != HygieneVerdict.DISCARD
+
+        _t0 = time.time()
+        context_blocks = self.almond.controller.prepare_context(user_message)
+        self.almond.controller._record_stage_time("chat.prepare_context_total", (time.time() - _t0) * 1000)
+
+        if store_user_message:
+            _user_block_for_extraction = MemoryBlock(
+                content=user_message,
+                tag=MemoryTag.EPISODIC,
+                importance_score=5.0,
+                tier=MemoryTier.L2_ACTIVE_RAM,
+                source="user",
+                session_id=self.almond.config.session_id,
+            )
+            self.almond.controller._run_extraction_pipeline(_user_block_for_extraction)
+
+        return PostChatContext(
+            user_message=user_message,
+            context_blocks=context_blocks,
+            store_user_message=store_user_message,
+            start_time=start_time,
+        )
+
+    def generate(self, ctx: PostChatContext) -> str:
+        _t0 = time.time()
+        prompt_messages = self.almond._build_messages(ctx.context_blocks, ctx.user_message)
+        self.almond.controller._record_stage_time("chat.build_messages", (time.time() - _t0) * 1000)
+
+        _t0 = time.time()
+        reply = self.almond._call_llm(prompt_messages)
+        self.almond.controller._record_stage_time("chat.llm_generate", (time.time() - _t0) * 1000)
+
+        ctx.assistant_reply = reply
+        ctx.latency_ms = (time.time() - ctx.start_time) * 1000
+        return reply
+
+    def generate_stream(self, ctx: PostChatContext):
+        _t0 = time.time()
+        prompt_messages = self.almond._build_messages(ctx.context_blocks, ctx.user_message)
+        self.almond.controller._record_stage_time("chat.build_messages", (time.time() - _t0) * 1000)
+
+        _t0 = time.time()
+        reply = ""
+        for token in self.almond._stream_llm(prompt_messages):
+            reply += token
+            yield token
+            
+        self.almond.controller._record_stage_time("chat.llm_generate", (time.time() - _t0) * 1000)
+        ctx.assistant_reply = reply
+        ctx.latency_ms = (time.time() - ctx.start_time) * 1000
+
+    def enqueue_ingest(self, ctx: PostChatContext):
+        MAX_HISTORY = 6
+        self.almond._chat_history.append({"role": "user", "content": ctx.user_message})
+        self.almond._chat_history.append({"role": "assistant", "content": ctx.assistant_reply})
+        if len(self.almond._chat_history) > MAX_HISTORY:
+            self.almond._chat_history = self.almond._chat_history[-MAX_HISTORY:]
+
+        self.almond._log_turn(
+            user_message=ctx.user_message,
+            reply=ctx.assistant_reply,
+            context_blocks=ctx.context_blocks,
+            paged_in_ids=[],
+            evicted_ids=[],
+            latency_ms=ctx.latency_ms,
+        )
+        logger.info("[TURN %d] %.0fms", self.almond._turn_index, ctx.latency_ms)
+
+        task = IngestionTask(
+            user_message=ctx.user_message,
+            assistant_reply=ctx.assistant_reply,
+            store_user_message=ctx.store_user_message,
+            latency_ms=ctx.latency_ms,
+        )
+        self.almond.worker.enqueue(task)
+
+    def execute_ingest(self, task: IngestionTask):
+        try:
+            if not self.almond.config.benchmark_mode:
+                cleaned_reply = _hygiene.clean_response(task.assistant_reply)
+                if cleaned_reply is not None:
+                    tag, score = self.almond._classify_response(task.user_message)
+                    kw = self.almond._extract_keywords(task.user_message) if task.store_user_message else []
+                    
+                    self.almond.controller.ingest_response(
+                        content=cleaned_reply,
+                        tag=tag,
+                        importance_score=score,
+                        keywords=kw,
+                        session_id=self.almond.config.session_id,
+                    )
+                else:
+                    logger.debug("[TURN %d] Reply discarded by hygiene (noise/ignorance)", self.almond._turn_index)
+        except Exception as e:
+            logger.error("[BACKGROUND INGEST ERROR] %s", e, exc_info=True)
+            raise  # Raise so worker knows it failed and can retry
+
+
 # ============================================================================
 # TURN LOGGING
+
 # ============================================================================
 
 @dataclass
@@ -184,6 +317,9 @@ class Almond:
         self._chat_history: list[dict]  = []
 
         self._boot()
+        
+        self.worker = MemoryWorker(self)
+        self.worker.start()
 
     # =========================================================================
     # BOOT
@@ -213,123 +349,22 @@ class Almond:
     # =========================================================================
 
     def chat(self, user_message: str) -> str:
-        start = time.time()
-        self._turn_index += 1
-
-        # ------------------------------------------------------------------
-        # Phase 1: user message hygiene gate
-        # Greetings, one-word acks ("ok", "thanks") are not worth storing.
-        # The gate never blocks the LLM call — only the storage decision.
-        # ------------------------------------------------------------------
-        _user_hraw = HRaw(
-            id=f"u-{self._turn_index}",
-            source=HSource.USER,
-            text=user_message,
-            timestamp=__import__("datetime").datetime.now(),
-            session_id=self.config.session_id or "default",
-            conversation_turn=self._turn_index,
-        )
-        _user_hygiene = _hygiene.evaluate(_user_hraw)
-        _store_user_message = _user_hygiene.verdict != HygieneVerdict.DISCARD
-
-        # ------------------------------------------------------------------
-        # MEMORY PREP
-        # ------------------------------------------------------------------
-        _t0 = time.time()
-        context_blocks = self.controller.prepare_context(user_message)
-        self.controller._record_stage_time("chat.prepare_context_total", (time.time() - _t0) * 1000)
-
-        # Run extraction on the user message itself (outside benchmark gate)
-        # so entities and facts from user input reach the timeline index
-        # regardless of whether we store the reply.
-        if _store_user_message:
-            _user_block_for_extraction = MemoryBlock(
-                content=user_message,
-                tag=MemoryTag.EPISODIC,
-                importance_score=5.0,
-                tier=MemoryTier.L2_ACTIVE_RAM,
-                source="user",
-                session_id=self.config.session_id,
-            )
-            self.controller._run_extraction_pipeline(_user_block_for_extraction)
-
-        # ------------------------------------------------------------------
-        # MESSAGE BUILD
-        # ------------------------------------------------------------------
-        _t0 = time.time()
-        prompt_messages = self._build_messages(
-            context_blocks=context_blocks,
-            user_message=user_message,
-        )
-        self.controller._record_stage_time("chat.build_messages", (time.time() - _t0) * 1000)
-
-        # ------------------------------------------------------------------
-        # LLM CALL
-        # ------------------------------------------------------------------
-        _t0 = time.time()
-        reply = self._call_llm(prompt_messages)
-        self.controller._record_stage_time("chat.llm_generate", (time.time() - _t0) * 1000)
-
-        # ------------------------------------------------------------------
-        # CHAT HISTORY  (append then trim so history never exceeds cap)
-        # ------------------------------------------------------------------
-        MAX_HISTORY = 6
-        self._chat_history.append({"role": "user",      "content": user_message})
-        self._chat_history.append({"role": "assistant", "content": reply})
-        if len(self._chat_history) > MAX_HISTORY:
-            self._chat_history = self._chat_history[-MAX_HISTORY:]
-
-        # ------------------------------------------------------------------
-        # INGEST RESPONSE
-        # Disabled during benchmarks to avoid self-contamination.
-        # Phase 1 hygiene: clean the reply before storage, discard noise.
-        # ------------------------------------------------------------------
-        if not self.config.benchmark_mode:
-            # Gate the assistant reply through hygiene before any storage
-            cleaned_reply = _hygiene.clean_response(reply)
-
-            if cleaned_reply is not None:
-                # Classify based on what the USER said (intent source),
-                # not the reply text — this is the correct semantic.
-                tag, score = self._classify_response(user_message)
-
-                if _store_user_message:
-                    # Keywords extracted from the user message — the topic
-                    # of the conversation, not the LLM's filler words.
-                    kw = self._extract_keywords(user_message)
-                else:
-                    kw = []
-
-                self.controller.ingest_response(
-                    content=cleaned_reply,
-                    tag=tag,
-                    importance_score=score,
-                    keywords=kw,
-                    session_id=self.config.session_id,
-                )
-            else:
-                logger.debug(
-                    "[TURN %d] Reply discarded by hygiene (noise/ignorance)",
-                    self._turn_index,
-                )
-
-        # ------------------------------------------------------------------
-        # TURN LOGGING
-        # ------------------------------------------------------------------
-        latency_ms = (time.time() - start) * 1000
-
-        self._log_turn(
-            user_message=user_message,
-            reply=reply,
-            context_blocks=context_blocks,
-            paged_in_ids=[],
-            evicted_ids=[],
-            latency_ms=latency_ms,
-        )
-
-        logger.info("[TURN %d] %.0fms", self._turn_index, latency_ms)
-
+        """Synchronous chat — used by benchmarks and the legacy /chat endpoint."""
+        pipeline = ConversationPipeline(self)
+        ctx = pipeline.prepare(user_message)
+        reply = pipeline.generate(ctx)
+        pipeline.enqueue_ingest(ctx)
         return reply
+
+    def chat_stream(self, user_message: str):
+        """Streaming chat — returns (ctx, pipeline, generator) for SSE."""
+        pipeline = ConversationPipeline(self)
+        ctx = pipeline.prepare(user_message)
+
+        def generator():
+            yield from pipeline.generate_stream(ctx)
+
+        return ctx, pipeline, generator()
 
     # =========================================================================
     # MANUAL MEMORY
@@ -342,16 +377,26 @@ class Almond:
         importance_score: float,
         keywords: Optional[list[str]] = None,
         tier: MemoryTier = MemoryTier.L2_ACTIVE_RAM,
+        created_at: Optional[float] = None,
     ) -> MemoryBlock:
-        block = MemoryBlock(
-            content=content,
-            tag=tag,
-            importance_score=importance_score,
-            keywords=keywords or [],
-            tier=tier,
-            source="user",
-            session_id=self.config.session_id,
-        )
+        kwargs = {
+            "content": content,
+            "tag": tag,
+            "importance_score": importance_score,
+            "keywords": keywords or [],
+            "tier": tier,
+            "source": "user",
+            "session_id": self.config.session_id,
+        }
+        if created_at is not None:
+            kwargs["created_at"] = created_at
+            # last_accessed_at intentionally NOT set to created_at.
+            # created_at = "when did the event happen?" (historical)
+            # last_accessed_at = "when did Almond learn about it?" (now)
+            # These are different clocks. MemoryBlock defaults
+            # last_accessed_at to time.time(), which is correct.
+            
+        block = MemoryBlock(**kwargs)
         self.controller.add(block)
         # Run extraction pipeline even in benchmark mode so the timeline index
         # and entity registry are populated for retrieval. This does NOT store
@@ -380,10 +425,21 @@ class Almond:
 
         # Memory preamble — injected whenever there are non-L1 blocks
         memory_lines: list[str] = []
+        reasoning_ctx = self.controller._last_reasoning_context
+        
+        if reasoning_ctx:
+            # We must import EntityRegistry if we want to resolve names? 
+            # Actually, TemporalRetriever already resolved them, but wait, TemporalReasoner needs the registry to generate the block.
+            # almond.py doesn't have the registry readily available in _build_messages.
+            # But the controller has it: `self.controller._entity_ext.registry`.
+            prompt_block = reasoning_ctx.to_prompt_block(self.controller._entity_ext.registry)
+            if prompt_block:
+                memory_lines.append(prompt_block)
+
         if memory_blocks:
             memory_lines.append("=== RELEVANT MEMORY ===")
             for block in memory_blocks:
-                memory_lines.append(block.to_context_snippet())
+                memory_lines.append(block.to_context_snippet(include_date=True))
             memory_lines.append("=== END MEMORY ===")
 
         memory_preamble = "\n".join(memory_lines)
@@ -558,6 +614,8 @@ class Almond:
 
     def close(self):
         try:
+            if hasattr(self, 'worker'):
+                self.worker.stop()
             self.store.close()
         except Exception:
             pass

@@ -1,0 +1,2748 @@
+{
+  "summary": {
+    "ablation": "none",
+    "questions": 85,
+    "accuracy": 36.47,
+    "avg_latency_ms": 19319.14,
+    "avg_replay_time_ms": 213671.04,
+    "avg_pollution": 0.0,
+    "avg_retrieved_blocks": 6.72,
+    "avg_rejected_blocks": 4.5,
+    "avg_l2_peak": 22.19,
+    "elapsed_seconds": 24914.4
+  },
+  "results": [
+    {
+      "index": 1,
+      "question_type": "temporal-reasoning",
+      "question": "What was the first issue I had with my new car after its first service?",
+      "expected_answer": "GPS system not functioning correctly",
+      "model_response": "You mentioned that you recently had an issue with your car's GPS system on 3/22, where the entire GPS system had to be replaced due to a failure. This was after taking your car back to the dealership for its first service.",
+      "passed": true,
+      "latency_ms": 19584.24,
+      "replay_time_ms": 75.36,
+      "judge_time_ms": 2773.84,
+      "l2_peak": 25,
+      "l3_peak": 11,
+      "avg_pollution": 0.0,
+      "judge_gate": "SUBSTRING_MATCH",
+      "judge_reasoning": "Extracted claim 'The entire GPS system had to be replaced.' is a normalized substring match of expected 'GPS system not functioning correctly' (or vice versa) - same answer, different phrasing.",
+      "judge_extracted": "The entire GPS system had to be replaced."
+    },
+    {
+      "index": 2,
+      "question_type": "temporal-reasoning",
+      "question": "Which event did I attend first, the 'Effective Time Management' workshop or the 'Data Analysis using Python' webinar?",
+      "expected_answer": "'Data Analysis using Python' webinar",
+      "model_response": "You attended the 'Data Analysis using Python' webinar two months ago. The 'Effective Time Management' workshop is not mentioned in our previous conversation as an event you have attended.",
+      "passed": true,
+      "latency_ms": 17612.83,
+      "replay_time_ms": 80.08,
+      "judge_time_ms": 2888.45,
+      "l2_peak": 20,
+      "l3_peak": 4,
+      "avg_pollution": 0.0,
+      "judge_gate": "SUBSTRING_MATCH",
+      "judge_reasoning": "Extracted claim 'Data Analysis using Python' is a normalized substring match of expected \"'Data Analysis using Python' webinar\" (or vice versa) - same answer, different phrasing.",
+      "judge_extracted": "Data Analysis using Python"
+    },
+    {
+      "index": 3,
+      "question_type": "temporal-reasoning",
+      "question": "Which vehicle did I take care of first in February, the bike or the car?",
+      "expected_answer": "bike",
+      "model_response": "According to our conversation memory, you washed your current Corolla on Monday, February 27th. You also mentioned that you got your bike repaired back in mid-February (around Feb 14-15). So, it seems that you took care of the car first in February.",
+      "passed": false,
+      "latency_ms": 16915.71,
+      "replay_time_ms": 80.64,
+      "judge_time_ms": 5460.23,
+      "l2_peak": 20,
+      "l3_peak": 4,
+      "avg_pollution": 0.0,
+      "judge_gate": "COMPARISON",
+      "judge_reasoning": "Extracted claim 'The car.' does not match expected 'bike'.",
+      "judge_extracted": "The car."
+    },
+    {
+      "index": 4,
+      "question_type": "temporal-reasoning",
+      "question": "Which device did I got first, the Samsung Galaxy S22 or the Dell XPS 13?",
+      "expected_answer": "Samsung Galaxy S22",
+      "model_response": "You pre-ordered your laptop (Dell XPS 13) on January 28th and it arrived on February 25th. You mentioned that you recently got a new Samsung Galaxy S22 from Best Buy at the mall on February 20th. So, according to this information, you received your Dell XPS 13 first, about 5 days before getting your Samsung Galaxy S22.",
+      "passed": false,
+      "latency_ms": 14672.8,
+      "replay_time_ms": 73.3,
+      "judge_time_ms": 4867.25,
+      "l2_peak": 21,
+      "l3_peak": 3,
+      "avg_pollution": 0.0,
+      "judge_gate": "COMPARISON",
+      "judge_reasoning": "Extracted claim 'Dell XPS 13' does not match expected 'Samsung Galaxy S22'.",
+      "judge_extracted": "Dell XPS 13"
+    },
+    {
+      "index": 5,
+      "question_type": "temporal-reasoning",
+      "question": "How many days before the team meeting I was preparing for did I attend the workshop on 'Effective Communication in the Workplace'?",
+      "expected_answer": "7 days. 8 days (including the last day) is also acceptable.",
+      "model_response": "You attended the workshop on \"Effective Communication in the Workplace\" 7 days before the team meeting, as indicated by the memories. The workshop was held on January 10th and you were preparing for a team meeting on January 17th.",
+      "passed": true,
+      "latency_ms": 16715.65,
+      "replay_time_ms": 75.04,
+      "judge_time_ms": 0.0,
+      "l2_peak": 24,
+      "l3_peak": 0,
+      "avg_pollution": 0.0,
+      "judge_gate": "NUMERIC_GATE",
+      "judge_reasoning": "Numeric match: response contains [7.0], which overlaps acceptable values [7.0, 8.0].",
+      "judge_extracted": ""
+    },
+    {
+      "index": 6,
+      "question_type": "temporal-reasoning",
+      "question": "How many days had passed between the Sunday mass at St. Mary's Church and the Ash Wednesday service at the cathedral?",
+      "expected_answer": "30 days. 31 days (including the last day) is also acceptable.",
+      "model_response": "According to the memory, you attended the Sunday mass at St. Mary's Church on January 2nd, and then mentioned attending an Ash Wednesday service at the cathedral on February 1st.\n\nTo calculate the number of days between these two dates:\n\nJanuary has 31 days, so from January 2nd to January 31st is 29 days.\nFebruary 1st is the first day of February.\n\nTherefore, there are 30 days (from January 2nd to January 31st) + 1 day (February 1st) = 31 days between the Sunday mass at St. Mary's Church and the",
+      "passed": true,
+      "latency_ms": 20097.55,
+      "replay_time_ms": 140925.22,
+      "judge_time_ms": 1.0,
+      "l2_peak": 20,
+      "l3_peak": 2,
+      "avg_pollution": 0.0,
+      "judge_gate": "NUMERIC_GATE",
+      "judge_reasoning": "Numeric match: response contains [30.0, 31.0], which overlaps acceptable values [30.0, 31.0].",
+      "judge_extracted": ""
+    },
+    {
+      "index": 7,
+      "question_type": "temporal-reasoning",
+      "question": "How many days did it take for me to find a house I loved after starting to work with Rachel?",
+      "expected_answer": "14 days. 15 days (including the last day) is also acceptable.",
+      "model_response": "I don't have enough information in the memories to determine how long it took you to find a house you loved after starting to work with Rachel. The memories mention that you saw a house on March 1st, but they do not provide a specific date for when you started working with Rachel or how long it took to find the house.",
+      "passed": false,
+      "latency_ms": 15616.64,
+      "replay_time_ms": 161430.0,
+      "judge_time_ms": 0.0,
+      "l2_peak": 20,
+      "l3_peak": 4,
+      "avg_pollution": 0.0,
+      "judge_gate": "ABSTENTION_GATE",
+      "judge_reasoning": "Opening abstention detected: \"i don't have enough information\" appears in the first 14 words - model made no attempt to answer.",
+      "judge_extracted": ""
+    },
+    {
+      "index": 8,
+      "question_type": "temporal-reasoning",
+      "question": "Which seeds were started first, the tomatoes or the marigolds?",
+      "expected_answer": "Tomatoes",
+      "model_response": "The marigold seeds were started first. They arrived on March 3rd and are already germinating.",
+      "passed": false,
+      "latency_ms": 11011.11,
+      "replay_time_ms": 149236.43,
+      "judge_time_ms": 4981.04,
+      "l2_peak": 19,
+      "l3_peak": 0,
+      "avg_pollution": 0.0,
+      "judge_gate": "COMPARISON",
+      "judge_reasoning": "Extracted claim 'The marigold seeds were started first.' does not match expected 'Tomatoes'.",
+      "judge_extracted": "The marigold seeds were started first."
+    },
+    {
+      "index": 9,
+      "question_type": "temporal-reasoning",
+      "question": "How many days had passed between the Hindu festival of Holi and the Sunday mass at St. Mary's Church?",
+      "expected_answer": "21 days. 22 days (including the last day) is also acceptable.",
+      "model_response": "I don't have enough information to determine the exact number of days that had passed between the Hindu festival of Holi and the Sunday mass at St. Mary's Church. However, I can suggest some possible ways to estimate this.\n\nSince you mentioned attending the Holi celebration on February 26th, we can assume that it was a one-day event. The Sunday mass at St. Mary's Church is not dated in the memory, but since it is referred to as \"last Sunday\", we can infer that it occurred after the Holi celebrat",
+      "passed": false,
+      "latency_ms": 21666.21,
+      "replay_time_ms": 182834.72,
+      "judge_time_ms": 0.0,
+      "l2_peak": 20,
+      "l3_peak": 4,
+      "avg_pollution": 0.0,
+      "judge_gate": "ABSTENTION_GATE",
+      "judge_reasoning": "Opening abstention detected: \"i don't have enough information\" appears in the first 14 words - model made no attempt to answer.",
+      "judge_extracted": ""
+    },
+    {
+      "index": 10,
+      "question_type": "temporal-reasoning",
+      "question": "How many days before the 'Rack Fest' did I participate in the 'Turbocharged Tuesdays' event?",
+      "expected_answer": "4 days.",
+      "model_response": "According to our conversation, you mentioned that you participated in the \"Turbocharged Tuesdays\" event on June 14th and then attended the \"Rack Fest\" event on June 18th. This means that there were 4 days between the two events (June 15-17).",
+      "passed": true,
+      "latency_ms": 12896.57,
+      "replay_time_ms": 131053.03,
+      "judge_time_ms": 0.0,
+      "l2_peak": 20,
+      "l3_peak": 2,
+      "avg_pollution": 0.0,
+      "judge_gate": "NUMERIC_GATE",
+      "judge_reasoning": "Numeric match: response contains [4.0], which overlaps acceptable values [4.0].",
+      "judge_extracted": ""
+    },
+    {
+      "index": 11,
+      "question_type": "temporal-reasoning",
+      "question": "Which pair of shoes did I clean last month?",
+      "expected_answer": "white Adidas sneakers",
+      "model_response": "You cleaned your white Adidas sneakers last month, which you had been meaning to do for weeks after attending an outdoor music festival.",
+      "passed": true,
+      "latency_ms": 23771.86,
+      "replay_time_ms": 417269.19,
+      "judge_time_ms": 2572.48,
+      "l2_peak": 24,
+      "l3_peak": 34,
+      "avg_pollution": 0.0,
+      "judge_gate": "SUBSTRING_MATCH",
+      "judge_reasoning": "Extracted claim 'Your white Adidas sneakers.' is a normalized substring match of expected 'white Adidas sneakers' (or vice versa) - same answer, different phrasing.",
+      "judge_extracted": "Your white Adidas sneakers."
+    },
+    {
+      "index": 12,
+      "question_type": "temporal-reasoning",
+      "question": "Which event happened first, the purchase of the coffee maker or the malfunction of the stand mixer?",
+      "expected_answer": "The malfunction of the stand mixer",
+      "model_response": "The memory mentions that a new coffee maker was purchased, but it doesn't specify when. However, it does mention that the user had to take their stand mixer to a repair shop and wait two weeks for it to be fixed.\n\nSince there's no specific date mentioned for either event, I can only make an educated guess based on the context. It seems likely that the purchase of the coffee maker happened before the malfunction of the stand mixer, as the user was already using the coffee maker when they had to b",
+      "passed": false,
+      "latency_ms": 17150.21,
+      "replay_time_ms": 193510.09,
+      "judge_time_ms": 5112.19,
+      "l2_peak": 22,
+      "l3_peak": 2,
+      "avg_pollution": 0.0,
+      "judge_gate": "COMPARISON",
+      "judge_reasoning": "Extracted claim 'The purchase of the coffee maker happened first.' does not match expected 'The malfunction of the stand mixer'.",
+      "judge_extracted": "The purchase of the coffee maker happened first."
+    },
+    {
+      "index": 13,
+      "question_type": "temporal-reasoning",
+      "question": "How many days had passed between the 'Walk for Hunger' event and the 'Coastal Cleanup' event?",
+      "expected_answer": "14 days. 8 days (including the last day) is also acceptable.",
+      "model_response": "You participated in the \"Walk for Hunger\" 5K walk on February 21st, and you volunteered at the Coastal Cleanup event on March 7th. To find out how many days had passed between these two events:\n\nMarch has 31 days, so from February 21st to February 28th (the last day of February), there are 8 days.\n\nFrom February 29th (leap year) to March 1st is 1 day.\nFrom March 1st to March 7th is 6 days.\n\nSo, in total, it's 8 + 1 + 6 = 15 days between the two events.",
+      "passed": true,
+      "latency_ms": 21104.94,
+      "replay_time_ms": 169693.94,
+      "judge_time_ms": 1.29,
+      "l2_peak": 20,
+      "l3_peak": 4,
+      "avg_pollution": 0.0,
+      "judge_gate": "NUMERIC_GATE",
+      "judge_reasoning": "Numeric match: response contains [8.0], which overlaps acceptable values [8.0, 14.0].",
+      "judge_extracted": ""
+    },
+    {
+      "index": 14,
+      "question_type": "temporal-reasoning",
+      "question": "Which item did I purchase first, the dog bed for Max or the training pads for Luna?",
+      "expected_answer": "Training pads for Luna",
+      "model_response": "According to our conversation memories, you purchased the Orthopedic Memory Foam dog bed for Max from Petco about 3 weeks ago. The training pads for Luna were mentioned as a recommendation in the context of potty-training aids, but there's no specific memory of you purchasing them.",
+      "passed": false,
+      "latency_ms": 16259.16,
+      "replay_time_ms": 159022.61,
+      "judge_time_ms": 5149.63,
+      "l2_peak": 21,
+      "l3_peak": 3,
+      "avg_pollution": 0.0,
+      "judge_gate": "COMPARISON",
+      "judge_reasoning": "Extracted claim 'The Orthopedic Memory Foam dog bed for Max.' does not match expected 'Training pads for Luna'.",
+      "judge_extracted": "The Orthopedic Memory Foam dog bed for Max."
+    },
+    {
+      "index": 15,
+      "question_type": "temporal-reasoning",
+      "question": "Which task did I complete first, fixing the fence or trimming the goats' hooves?",
+      "expected_answer": "Fixing the fence",
+      "model_response": "You didn't mention completing either of those tasks. You mentioned doing a great job with keeping up with the goat's hoof trimming and it was successful two weeks ago.",
+      "passed": false,
+      "latency_ms": 15025.53,
+      "replay_time_ms": 178412.21,
+      "judge_time_ms": 2757.88,
+      "l2_peak": 20,
+      "l3_peak": 4,
+      "avg_pollution": 0.0,
+      "judge_gate": "EXTRACTION_NO_ANSWER",
+      "judge_reasoning": "Model response did not commit to a clear answer (detected during extraction, not opening-abstention).",
+      "judge_extracted": "NO_CLEAR_ANSWER"
+    },
+    {
+      "index": 16,
+      "question_type": "temporal-reasoning",
+      "question": "How many charity events did I participate in before the 'Run for the Cure' event?",
+      "expected_answer": "4",
+      "model_response": "You participated in the \"Dance for a Cause\" event on May 1st. That's the only charity event mentioned in our conversation that occurred before the \"Run for the Cure\" event.",
+      "passed": false,
+      "latency_ms": 27924.72,
+      "replay_time_ms": 480593.06,
+      "judge_time_ms": 5202.36,
+      "l2_peak": 25,
+      "l3_peak": 43,
+      "avg_pollution": 0.0,
+      "judge_gate": "COMPARISON",
+      "judge_reasoning": "Extracted claim 'You participated in 1 charity event.' does not match expected '4'.",
+      "judge_extracted": "You participated in 1 charity event."
+    },
+    {
+      "index": 17,
+      "question_type": "temporal-reasoning",
+      "question": "How long have I been working before I started my current job at NovaTech?",
+      "expected_answer": "4 years and 9 months",
+      "model_response": "You mentioned earlier that you've been working at NovaTech for about 4 years and 3 months. Before that, you graduated with a degree in Computer Science from the University of California, Berkeley. So, it seems like you've been working professionally for around 4-5 years after graduation.",
+      "passed": false,
+      "latency_ms": 16014.32,
+      "replay_time_ms": 194129.07,
+      "judge_time_ms": 0.0,
+      "l2_peak": 21,
+      "l3_peak": 3,
+      "avg_pollution": 0.0,
+      "judge_gate": "NUMERIC_GATE",
+      "judge_reasoning": "Compound duration mismatch: response states 4 years 3 months, but expected 4 years 9 months. Years/months must match together, not independently.",
+      "judge_extracted": ""
+    },
+    {
+      "index": 18,
+      "question_type": "temporal-reasoning",
+      "question": "Which book did I finish reading first, 'The Hate U Give' or 'The Nightingale'?",
+      "expected_answer": "'The Hate U Give'",
+      "model_response": "According to our conversation memory, you mentioned that you finished \"The Seven Husbands of Evelyn Hugo\" by Taylor Jenkins Reid last weekend and then went on to read \"The Silent Patient\" by Alex Michaelides. After that, you recommended some similar books and authors for someone who enjoyed \"The Hate U Give\". You didn't mention finishing \"The Nightingale\" in our conversation.",
+      "passed": false,
+      "latency_ms": 16901.96,
+      "replay_time_ms": 223364.33,
+      "judge_time_ms": 2791.24,
+      "l2_peak": 21,
+      "l3_peak": 3,
+      "avg_pollution": 0.0,
+      "judge_gate": "EXTRACTION_NO_ANSWER",
+      "judge_reasoning": "Model response did not commit to a clear answer (detected during extraction, not opening-abstention).",
+      "judge_extracted": "NO_CLEAR_ANSWER"
+    },
+    {
+      "index": 19,
+      "question_type": "temporal-reasoning",
+      "question": "Which device did I set up first, the smart thermostat or the mesh network system?",
+      "expected_answer": "Smart thermostat",
+      "model_response": "You mentioned that you recently upgraded your home Wi-Fi router to a new mesh network system 3 weeks ago. You also mentioned setting up your smart thermostat \"a month ago\". So, it seems that you set up the smart thermostat first, about a month before upgrading your Wi-Fi router to the mesh network system.",
+      "passed": true,
+      "latency_ms": 16260.29,
+      "replay_time_ms": 222942.02,
+      "judge_time_ms": 2701.05,
+      "l2_peak": 21,
+      "l3_peak": 3,
+      "avg_pollution": 0.0,
+      "judge_gate": "SUBSTRING_MATCH",
+      "judge_reasoning": "Extracted claim 'The smart thermostat.' is a normalized substring match of expected 'Smart thermostat' (or vice versa) - same answer, different phrasing.",
+      "judge_extracted": "The smart thermostat."
+    },
+    {
+      "index": 20,
+      "question_type": "temporal-reasoning",
+      "question": "How many months ago did I book the Airbnb in San Francisco?",
+      "expected_answer": "Five months ago",
+      "model_response": "You mentioned that you booked your Airbnb three months ago for your friend's wedding. This was after you had a great experience with Airbnb in Haight-Ashbury two months prior to that, when you stayed there for your best friend's wedding.",
+      "passed": false,
+      "latency_ms": 19043.84,
+      "replay_time_ms": 159773.0,
+      "judge_time_ms": 4967.43,
+      "l2_peak": 21,
+      "l3_peak": 3,
+      "avg_pollution": 0.0,
+      "judge_gate": "COMPARISON",
+      "judge_reasoning": "Extracted claim 'Three months ago' does not match expected 'Five months ago'.",
+      "judge_extracted": "Three months ago"
+    },
+    {
+      "index": 21,
+      "question_type": "temporal-reasoning",
+      "question": "How long did I take to finish 'The Seven Husbands of Evelyn Hugo' and 'The Nightingale' combined?",
+      "expected_answer": "5.5 weeks",
+      "model_response": "You finished \"The Seven Husbands of Evelyn Hugo\" in 2.5 weeks, and you mentioned that it took you about three weeks to finish \"The Nightingale\". I don't have information on the exact dates when you started or finished these books, but based on your statements, it's possible to estimate the combined time taken to finish both books.\n\nAssuming a rough estimate of 3-4 weeks for each book, the total time taken would be around 6-8 weeks.",
+      "passed": false,
+      "latency_ms": 23177.64,
+      "replay_time_ms": 324680.93,
+      "judge_time_ms": 1.0,
+      "l2_peak": 24,
+      "l3_peak": 12,
+      "avg_pollution": 0.0,
+      "judge_gate": "NUMERIC_GATE",
+      "judge_reasoning": "Response explicitly states 2.5 weeks, which does not match any acceptable value in [5.5, 38.5].",
+      "judge_extracted": ""
+    },
+    {
+      "index": 22,
+      "question_type": "temporal-reasoning",
+      "question": "What was the date on which I attended the first BBQ event in June?",
+      "expected_answer": "June 3rd",
+      "model_response": "You mentioned attending a backyard BBQ party at your colleague's house on the 3rd of June.",
+      "passed": true,
+      "latency_ms": 19219.93,
+      "replay_time_ms": 171149.7,
+      "judge_time_ms": 2691.95,
+      "l2_peak": 21,
+      "l3_peak": 3,
+      "avg_pollution": 0.0,
+      "judge_gate": "SUBSTRING_MATCH",
+      "judge_reasoning": "Extracted claim '3rd of June' is a normalized substring match of expected 'June 3rd' (or vice versa) - same answer, different phrasing.",
+      "judge_extracted": "3rd of June"
+    },
+    {
+      "index": 23,
+      "question_type": "temporal-reasoning",
+      "question": "How many days before I bought the iPhone 13 Pro did I attend the Holiday Market?",
+      "expected_answer": "7 days. 8 days (including the last day) is also acceptable.",
+      "model_response": "I don't have enough information to determine how many days before you bought the iPhone 13 Pro you attended the Holiday Market. The memories only mention attending the Holiday Market and considering purchasing a phone case, but they do not provide a specific date or time reference for when you attended the market or purchased the iPhone 13 Pro.",
+      "passed": false,
+      "latency_ms": 12555.36,
+      "replay_time_ms": 169826.92,
+      "judge_time_ms": 0.0,
+      "l2_peak": 20,
+      "l3_peak": 4,
+      "avg_pollution": 0.0,
+      "judge_gate": "ABSTENTION_GATE",
+      "judge_reasoning": "Opening abstention detected: \"i don't have enough information\" appears in the first 14 words - model made no attempt to answer.",
+      "judge_extracted": ""
+    },
+    {
+      "index": 24,
+      "question_type": "temporal-reasoning",
+      "question": "Which show did I start watching first, 'The Crown' or 'Game of Thrones'?",
+      "expected_answer": "'Game of Thrones'",
+      "model_response": "You started watching \"The Crown\" on Netflix and finished the entire third season in just 14 days. You then mentioned that you were looking for new shows to watch after finishing \"The Crown\". However, there is no memory of you watching \"Game of Thrones\" previously. It seems that you started watching \"The Crown\" first.",
+      "passed": false,
+      "latency_ms": 15325.94,
+      "replay_time_ms": 200467.6,
+      "judge_time_ms": 5005.63,
+      "l2_peak": 21,
+      "l3_peak": 3,
+      "avg_pollution": 0.0,
+      "judge_gate": "COMPARISON",
+      "judge_reasoning": "Extracted claim '\"The Crown\"' does not match expected \"'Game of Thrones'\".",
+      "judge_extracted": "\"The Crown\""
+    },
+    {
+      "index": 25,
+      "question_type": "temporal-reasoning",
+      "question": "How long had I been a member of 'Book Lovers Unite' when I attended the meetup?",
+      "expected_answer": "Two weeks",
+      "model_response": "You mentioned that you attended a meetup organized by \"Book Lovers Unite\" last week, and it was just three weeks ago that you joined the group. So, you were a relatively new member at the time of the meetup.",
+      "passed": false,
+      "latency_ms": 18714.79,
+      "replay_time_ms": 169631.2,
+      "judge_time_ms": 4909.47,
+      "l2_peak": 21,
+      "l3_peak": 3,
+      "avg_pollution": 0.0,
+      "judge_gate": "COMPARISON",
+      "judge_reasoning": "Extracted claim 'Three weeks' does not match expected 'Two weeks'.",
+      "judge_extracted": "Three weeks"
+    },
+    {
+      "index": 26,
+      "question_type": "temporal-reasoning",
+      "question": "How long had I been watching stand-up comedy specials regularly when I attended the open mic night at the local comedy club?",
+      "expected_answer": "2 months",
+      "model_response": "You mentioned that you started watching stand-up comedy specials about 3 months ago, and it was during this time that you watched John Mulaney's special. This is around the same time that you decided to attend an open mic night at a local comedy club. So, I would say that you had been watching stand-up comedy specials regularly for approximately 3 months when you attended the open mic night.",
+      "passed": false,
+      "latency_ms": 20756.03,
+      "replay_time_ms": 191222.74,
+      "judge_time_ms": 0.0,
+      "l2_peak": 22,
+      "l3_peak": 0,
+      "avg_pollution": 0.0,
+      "judge_gate": "NUMERIC_GATE",
+      "judge_reasoning": "Response explicitly states 3 months, which does not match any acceptable value in [2.0].",
+      "judge_extracted": ""
+    },
+    {
+      "index": 27,
+      "question_type": "temporal-reasoning",
+      "question": "What time do I wake up on Tuesdays and Thursdays?",
+      "expected_answer": "6:45 AM",
+      "model_response": "You mentioned waking up 15 minutes earlier on Tuesdays and Thursdays to meditate and practice yoga, but you didn't specify the exact wake-up time. You usually wake up at 7:00 AM on other days.",
+      "passed": false,
+      "latency_ms": 20227.84,
+      "replay_time_ms": 188141.25,
+      "judge_time_ms": 2794.59,
+      "l2_peak": 22,
+      "l3_peak": 2,
+      "avg_pollution": 0.0,
+      "judge_gate": "EXTRACTION_NO_ANSWER",
+      "judge_reasoning": "Model response did not commit to a clear answer (detected during extraction, not opening-abstention).",
+      "judge_extracted": "NO CLEAR ANSWER"
+    },
+    {
+      "index": 28,
+      "question_type": "temporal-reasoning",
+      "question": "How many days had passed since I bought my Adidas running shoes when I realized one of the shoelaces on my old Converse sneakers had broken?",
+      "expected_answer": "14 days. 15 days (including the last day) is also acceptable.",
+      "model_response": "According to the memory, you mentioned that you bought your new Adidas running shoes at the outlet mall with your sister on January 10th. You then said \"By the way, speaking of shoes, I realized that one of the shoelaces on my old Converse sneakers had broken on January 24th...\"\n\nSo, it was approximately 14 days (January 10th to January 24th) since you bought your Adidas running shoes when you realized the shoelace on your Converse sneakers had broken.",
+      "passed": true,
+      "latency_ms": 16715.02,
+      "replay_time_ms": 164927.78,
+      "judge_time_ms": 1.0,
+      "l2_peak": 21,
+      "l3_peak": 3,
+      "avg_pollution": 0.0,
+      "judge_gate": "NUMERIC_GATE",
+      "judge_reasoning": "Numeric match: response contains [14.0], which overlaps acceptable values [14.0, 15.0].",
+      "judge_extracted": ""
+    },
+    {
+      "index": 29,
+      "question_type": "temporal-reasoning",
+      "question": "Which event happened first, the road trip to the coast or the arrival of the new prime lens?",
+      "expected_answer": "The arrival of the new prime lens",
+      "model_response": "Based on the memories provided, it appears that the road trip to the coast occurred before the arrival of the new 50mm f/1.8 prime lens. The conversation mentions a coastal trip and taking photos with the 50mm lens, but it doesn't specify when the lens was acquired. However, since the memory about the road trip is mentioned first, it's likely that the trip happened earlier than the arrival of the new lens.",
+      "passed": false,
+      "latency_ms": 16704.43,
+      "replay_time_ms": 210897.59,
+      "judge_time_ms": 5156.12,
+      "l2_peak": 20,
+      "l3_peak": 4,
+      "avg_pollution": 0.0,
+      "judge_gate": "COMPARISON",
+      "judge_reasoning": "Extracted claim 'The road trip to the coast occurred first.' does not match expected 'The arrival of the new prime lens'.",
+      "judge_extracted": "The road trip to the coast occurred first."
+    },
+    {
+      "index": 30,
+      "question_type": "temporal-reasoning",
+      "question": "Which airline did I fly with the most in March and April?",
+      "expected_answer": "United Airlines",
+      "model_response": "Based on our previous conversations, it seems that you flew with United Airlines during your week-long vacation to Hawaii from the 20th to the 27th of April. However, we didn't discuss your flights for March.\n\nIf you'd like to know which airline you flew with the most in either month, I can try to help you recall some details from our previous conversations.",
+      "passed": true,
+      "latency_ms": 23020.32,
+      "replay_time_ms": 239251.86,
+      "judge_time_ms": 2742.98,
+      "l2_peak": 27,
+      "l3_peak": 5,
+      "avg_pollution": 0.0,
+      "judge_gate": "SUBSTRING_MATCH",
+      "judge_reasoning": "Extracted claim 'United Airlines' is a normalized substring match of expected 'United Airlines' (or vice versa) - same answer, different phrasing.",
+      "judge_extracted": "United Airlines"
+    },
+    {
+      "index": 31,
+      "question_type": "temporal-reasoning",
+      "question": "How long had I been bird watching when I attended the bird watching workshop?",
+      "expected_answer": "Two months",
+      "model_response": "You mentioned that you recently attended a bird watching workshop at the local Audubon society a month ago. This suggests that you've been interested in or actively engaging with bird watching for about a month, but not necessarily longer than that. However, it's also possible that you had some prior interest or experience before attending the workshop.",
+      "passed": false,
+      "latency_ms": 19211.31,
+      "replay_time_ms": 173120.98,
+      "judge_time_ms": 4931.24,
+      "l2_peak": 20,
+      "l3_peak": 4,
+      "avg_pollution": 0.0,
+      "judge_gate": "COMPARISON",
+      "judge_reasoning": "Extracted claim 'About a month' does not match expected 'Two months'.",
+      "judge_extracted": "About a month"
+    },
+    {
+      "index": 32,
+      "question_type": "temporal-reasoning",
+      "question": "Which trip did I take first, the one to Europe with family or the solo trip to Thailand?",
+      "expected_answer": "The solo trip to Thailand",
+      "model_response": "You mentioned earlier that you took a two-week trip to Europe with your parents and younger brother last month. You didn't mention taking a solo trip to Thailand before that. It seems like the European trip was more recent for you.",
+      "passed": true,
+      "latency_ms": 15678.01,
+      "replay_time_ms": 185248.21,
+      "judge_time_ms": 2756.53,
+      "l2_peak": 20,
+      "l3_peak": 4,
+      "avg_pollution": 0.0,
+      "judge_gate": "SUBSTRING_MATCH",
+      "judge_reasoning": "Extracted claim 'The European trip was more recent for you.' is a normalized substring match of expected 'The solo trip to Thailand' (or vice versa) - same answer, different phrasing.",
+      "judge_extracted": "The European trip was more recent for you."
+    },
+    {
+      "index": 33,
+      "question_type": "temporal-reasoning",
+      "question": "Which device did I set up first, the smart thermostat or the new router?",
+      "expected_answer": "new router",
+      "model_response": "You mentioned setting up your smart speaker on January 15th and getting a new router on January 28th. However, you also paid your internet bill on January 25th, which reminded you to call your provider to negotiate a better deal.\n\nIt seems that there's some confusion in the dates. To clarify, it appears that you set up your smart speaker first (January 15th) and then got a new router later (no specific date mentioned).",
+      "passed": false,
+      "latency_ms": 16922.19,
+      "replay_time_ms": 195742.98,
+      "judge_time_ms": 5002.48,
+      "l2_peak": 22,
+      "l3_peak": 2,
+      "avg_pollution": 0.0,
+      "judge_gate": "COMPARISON",
+      "judge_reasoning": "Extracted claim 'Smart speaker' does not match expected 'new router'.",
+      "judge_extracted": "Smart speaker"
+    },
+    {
+      "index": 34,
+      "question_type": "temporal-reasoning",
+      "question": "Which health issue did I deal with first, the persistent cough or the skin tag removal?",
+      "expected_answer": "Persistent cough",
+      "model_response": "Based on our conversation history, you dealt with the persistent cough (which led to a diagnosis of bronchitis and pneumonia) before getting a skin tag removed. The memory mentions that you had a minor surgical procedure to remove a skin tag from your neck on February 22nd, but it doesn't indicate when the cough started or how long you had been dealing with it before seeking medical attention.",
+      "passed": true,
+      "latency_ms": 15987.08,
+      "replay_time_ms": 167371.61,
+      "judge_time_ms": 2663.77,
+      "l2_peak": 21,
+      "l3_peak": 3,
+      "avg_pollution": 0.0,
+      "judge_gate": "SUBSTRING_MATCH",
+      "judge_reasoning": "Extracted claim 'Persistent cough.' is a normalized substring match of expected 'Persistent cough' (or vice versa) - same answer, different phrasing.",
+      "judge_extracted": "Persistent cough."
+    },
+    {
+      "index": 35,
+      "question_type": "temporal-reasoning",
+      "question": "How old was I when I moved to the United States?",
+      "expected_answer": "27",
+      "model_response": "You mentioned earlier that you've been living in the United States for the past five years on a work visa, which suggests that you were 27 years old (32 - 5 = 27) when you made this move.",
+      "passed": true,
+      "latency_ms": 19612.79,
+      "replay_time_ms": 176854.04,
+      "judge_time_ms": 0.0,
+      "l2_peak": 21,
+      "l3_peak": 1,
+      "avg_pollution": 0.0,
+      "judge_gate": "NUMERIC_GATE",
+      "judge_reasoning": "Numeric match: response contains [27.0], which overlaps acceptable values [27.0].",
+      "judge_extracted": ""
+    },
+    {
+      "index": 36,
+      "question_type": "temporal-reasoning",
+      "question": "How long had I been using the new area rug when I rearranged my living room furniture?",
+      "expected_answer": "One week. Answers ranging from 7 days to 10 days are also acceptable.",
+      "model_response": "You received a new area rug for your living room a month ago. This was after you rearranged the furniture three weeks ago, which means you were using the new area rug for at least two weeks before rearranging the furniture again.",
+      "passed": false,
+      "latency_ms": 18514.83,
+      "replay_time_ms": 182674.89,
+      "judge_time_ms": 4966.37,
+      "l2_peak": 22,
+      "l3_peak": 2,
+      "avg_pollution": 0.0,
+      "judge_gate": "COMPARISON",
+      "judge_reasoning": "Extracted claim 'At least two weeks.' does not match expected 'One week. Answers ranging from 7 days to 10 days are also acceptable.'.",
+      "judge_extracted": "At least two weeks."
+    },
+    {
+      "index": 37,
+      "question_type": "temporal-reasoning",
+      "question": "How many days before my best friend's birthday party did I order her gift?",
+      "expected_answer": "7 days. 8 days (including the last day) is also acceptable.",
+      "model_response": "You ordered the personalized photo album from Shutterfly on April 15th, and your best friend's birthday party was on April 22nd. That means you ordered the gift approximately 7 days before the party.",
+      "passed": true,
+      "latency_ms": 16845.57,
+      "replay_time_ms": 179369.28,
+      "judge_time_ms": 0.0,
+      "l2_peak": 21,
+      "l3_peak": 1,
+      "avg_pollution": 0.0,
+      "judge_gate": "NUMERIC_GATE",
+      "judge_reasoning": "Numeric match: response contains [7.0], which overlaps acceptable values [7.0, 8.0].",
+      "judge_extracted": ""
+    },
+    {
+      "index": 38,
+      "question_type": "temporal-reasoning",
+      "question": "Which trip did the narrator take first, the solo trip to Europe or the family road trip across the American Southwest?",
+      "expected_answer": "The family road trip across the American Southwest",
+      "model_response": "The narrator mentioned earlier that they took a solo trip to Europe last summer. However, in this conversation, they mentioned visiting Germany during their family's road trip across the American Southwest a few years ago. This suggests that the family road trip occurred before the solo trip to Europe.",
+      "passed": true,
+      "latency_ms": 14627.69,
+      "replay_time_ms": 149528.85,
+      "judge_time_ms": 2792.26,
+      "l2_peak": 20,
+      "l3_peak": 2,
+      "avg_pollution": 0.0,
+      "judge_gate": "SUBSTRING_MATCH",
+      "judge_reasoning": "Extracted claim 'The family road trip occurred before the solo trip to Europe.' is a normalized substring match of expected 'The family road trip across the American Southwest' (or vice versa) - same answer, different phrasing.",
+      "judge_extracted": "The family road trip occurred before the solo trip to Europe."
+    },
+    {
+      "index": 39,
+      "question_type": "temporal-reasoning",
+      "question": "How long did I use my new binoculars before I saw the American goldfinches returning to the area?",
+      "expected_answer": "Two weeks",
+      "model_response": "You received your new binoculars exactly three weeks ago. You mentioned it in our previous conversation when we discussed tips for improving bird identification skills.",
+      "passed": false,
+      "latency_ms": 15213.43,
+      "replay_time_ms": 177158.02,
+      "judge_time_ms": 5197.86,
+      "l2_peak": 21,
+      "l3_peak": 1,
+      "avg_pollution": 0.0,
+      "judge_gate": "COMPARISON",
+      "judge_reasoning": "Extracted claim 'You received your new binoculars exactly three weeks ago. \\n\\nThree weeks' does not match expected 'Two weeks'.",
+      "judge_extracted": "You received your new binoculars exactly three weeks ago. \n\nThree weeks"
+    },
+    {
+      "index": 40,
+      "question_type": "temporal-reasoning",
+      "question": "Who did I meet first, Mark and Sarah or Tom?",
+      "expected_answer": "Tom",
+      "model_response": "I don't have enough information in my memory to determine who you met first. The conversations mention both Mark and Sarah and a person named Rachel, but there's no clear indication of who you met first. If you'd like to provide more context or clarify the sequence of events, I can try to help further!",
+      "passed": false,
+      "latency_ms": 19257.56,
+      "replay_time_ms": 168582.35,
+      "judge_time_ms": 0.0,
+      "l2_peak": 21,
+      "l3_peak": 3,
+      "avg_pollution": 0.0,
+      "judge_gate": "ABSTENTION_GATE",
+      "judge_reasoning": "Opening abstention detected: \"i don't have enough information\" appears in the first 14 words - model made no attempt to answer.",
+      "judge_extracted": ""
+    },
+    {
+      "index": 41,
+      "question_type": "temporal-reasoning",
+      "question": "How many weeks have I been accepted into the exchange program when I started attending the pre-departure orientation sessions?",
+      "expected_answer": "one week",
+      "model_response": "You submitted your application on February 10th and got accepted on March 20th. You've also been attending pre-departure orientation sessions every Friday since March 27th.\n\nSo, let's calculate the number of weeks:\n\n* From March 20th (acceptance date) to March 27th is approximately 1 week.\n* Since you've been attending sessions every Friday, that means you've had about 3-4 sessions by now (March 27th, April 3rd, April 10th, and possibly one more).\n\nTherefore, it's been around 4 weeks since your ",
+      "passed": false,
+      "latency_ms": 17944.26,
+      "replay_time_ms": 164209.95,
+      "judge_time_ms": 5038.96,
+      "l2_peak": 21,
+      "l3_peak": 3,
+      "avg_pollution": 0.0,
+      "judge_gate": "COMPARISON",
+      "judge_reasoning": "Extracted claim '4 weeks' does not match expected 'one week'.",
+      "judge_extracted": "4 weeks"
+    },
+    {
+      "index": 42,
+      "question_type": "temporal-reasoning",
+      "question": "Which group did I join first, 'Page Turners' or 'Marketing Professionals'?",
+      "expected_answer": "Page Turners",
+      "model_response": "You joined the \"Marketing Professionals\" group first, as mentioned in the memory: \"What a great idea! Sharing insights and discussions from the \"Marketing Professionals\" group can add value to your audience, position you as a thought leader, and even encourage more engagement on your posts.\"",
+      "passed": false,
+      "latency_ms": 17151.5,
+      "replay_time_ms": 296222.45,
+      "judge_time_ms": 4961.71,
+      "l2_peak": 20,
+      "l3_peak": 16,
+      "avg_pollution": 0.0,
+      "judge_gate": "COMPARISON",
+      "judge_reasoning": "Extracted claim 'Marketing Professionals' does not match expected 'Page Turners'.",
+      "judge_extracted": "Marketing Professionals"
+    },
+    {
+      "index": 43,
+      "question_type": "temporal-reasoning",
+      "question": "How long had I been taking guitar lessons when I bought the new guitar amp?",
+      "expected_answer": "Four weeks",
+      "model_response": "You mentioned that you bought a new guitar amp two weeks ago. However, there is no information about how long you've been taking guitar lessons before buying the amp. If you'd like to share more details or context about your guitar lessons, I can try to help further!",
+      "passed": false,
+      "latency_ms": 19297.67,
+      "replay_time_ms": 179214.5,
+      "judge_time_ms": 2670.29,
+      "l2_peak": 20,
+      "l3_peak": 4,
+      "avg_pollution": 0.0,
+      "judge_gate": "EXTRACTION_NO_ANSWER",
+      "judge_reasoning": "Model response did not commit to a clear answer (detected during extraction, not opening-abstention).",
+      "judge_extracted": "NO_CLEAR_ANSWER"
+    },
+    {
+      "index": 44,
+      "question_type": "temporal-reasoning",
+      "question": "Which streaming service did I start using most recently?",
+      "expected_answer": "Disney+",
+      "model_response": "You started a free trial of Disney+ last month.",
+      "passed": true,
+      "latency_ms": 21796.86,
+      "replay_time_ms": 316700.68,
+      "judge_time_ms": 2660.83,
+      "l2_peak": 27,
+      "l3_peak": 9,
+      "avg_pollution": 0.0,
+      "judge_gate": "SUBSTRING_MATCH",
+      "judge_reasoning": "Extracted claim 'Disney+' is a normalized substring match of expected 'Disney+' (or vice versa) - same answer, different phrasing.",
+      "judge_extracted": "Disney+"
+    },
+    {
+      "index": 45,
+      "question_type": "temporal-reasoning",
+      "question": "How many months before my anniversary did Rachel get engaged?",
+      "expected_answer": "2",
+      "model_response": "According to the memories, Rachel got engaged on May 15th. Your anniversary is on July 22nd. That's approximately 2 months after she got engaged.",
+      "passed": true,
+      "latency_ms": 17822.77,
+      "replay_time_ms": 268705.06,
+      "judge_time_ms": 0.0,
+      "l2_peak": 22,
+      "l3_peak": 14,
+      "avg_pollution": 0.0,
+      "judge_gate": "NUMERIC_GATE",
+      "judge_reasoning": "Numeric match: response contains [2.0], which overlaps acceptable values [2.0].",
+      "judge_extracted": ""
+    },
+    {
+      "index": 46,
+      "question_type": "temporal-reasoning",
+      "question": "Which event happened first, the narrator losing their phone charger or the narrator receiving their new phone case?",
+      "expected_answer": "Receiving the new phone case",
+      "model_response": "According to the memories, the narrator received their new phone case about a month ago. The narrator lost their old phone charger at the gym about two weeks ago. Therefore, the narrator receiving their new phone case happened before they lost their phone charger.",
+      "passed": true,
+      "latency_ms": 17177.43,
+      "replay_time_ms": 170101.61,
+      "judge_time_ms": 2684.8,
+      "l2_peak": 20,
+      "l3_peak": 0,
+      "avg_pollution": 0.0,
+      "judge_gate": "SUBSTRING_MATCH",
+      "judge_reasoning": "Extracted claim 'The narrator receiving their new phone case happened first.' is a normalized substring match of expected 'Receiving the new phone case' (or vice versa) - same answer, different phrasing.",
+      "judge_extracted": "The narrator receiving their new phone case happened first."
+    },
+    {
+      "index": 47,
+      "question_type": "temporal-reasoning",
+      "question": "Who did I meet first, the woman selling jam at the farmer's market or the tourist from Australia?",
+      "expected_answer": "the woman selling jam at the farmer's market",
+      "model_response": "You met the woman selling jam at the farmer's market two weeks ago on a Saturday morning. The tourist from Australia was someone you met later, specifically last Thursday on the subway when you were on your way to work.",
+      "passed": true,
+      "latency_ms": 19504.8,
+      "replay_time_ms": 171617.12,
+      "judge_time_ms": 2764.33,
+      "l2_peak": 22,
+      "l3_peak": 2,
+      "avg_pollution": 0.0,
+      "judge_gate": "SUBSTRING_MATCH",
+      "judge_reasoning": "Extracted claim \"The woman selling jam at the farmer's market.\" is a normalized substring match of expected \"the woman selling jam at the farmer's market\" (or vice versa) - same answer, different phrasing.",
+      "judge_extracted": "The woman selling jam at the farmer's market."
+    },
+    {
+      "index": 48,
+      "question_type": "temporal-reasoning",
+      "question": "Which event happened first, the meeting with Rachel or the pride parade?",
+      "expected_answer": "The meeting with Rachel",
+      "model_response": "According to the memory, you attended the pride parade on May 1st. The conversation with Rachel was mentioned as happening after that, but no specific date was given for the conversation. However, a seminar about gender equality in the workplace was mentioned as taking place at your company's headquarters on March 22nd.",
+      "passed": false,
+      "latency_ms": 15544.89,
+      "replay_time_ms": 160522.14,
+      "judge_time_ms": 5055.71,
+      "l2_peak": 20,
+      "l3_peak": 0,
+      "avg_pollution": 0.0,
+      "judge_gate": "COMPARISON",
+      "judge_reasoning": "Extracted claim 'The pride parade on May 1st.' does not match expected 'The meeting with Rachel'.",
+      "judge_extracted": "The pride parade on May 1st."
+    },
+    {
+      "index": 49,
+      "question_type": "temporal-reasoning",
+      "question": "Which gift did I buy first, the necklace for my sister or the photo album for my mom?",
+      "expected_answer": "the photo album for my mom",
+      "model_response": "According to our conversation memories, you mentioned buying a beautiful Tiffany's necklace for your sister last weekend, which cost around $200. You also ordered a customized photo album from Shutterfly for your mom's anniversary, but it was after mentioning the necklace purchase.",
+      "passed": false,
+      "latency_ms": 14857.08,
+      "replay_time_ms": 196078.67,
+      "judge_time_ms": 4919.02,
+      "l2_peak": 20,
+      "l3_peak": 4,
+      "avg_pollution": 0.0,
+      "judge_gate": "COMPARISON",
+      "judge_reasoning": "Extracted claim 'The necklace for your sister.' does not match expected 'the photo album for my mom'.",
+      "judge_extracted": "The necklace for your sister."
+    },
+    {
+      "index": 50,
+      "question_type": "temporal-reasoning",
+      "question": "Which event did I participate in first, the volleyball league or the charity 5K run to raise money for a local children's hospital?",
+      "expected_answer": "volleyball league",
+      "model_response": "According to our conversation memories, you participated in the charity 5K run first. You mentioned that it was a great experience and that you were thinking of incorporating some agility ladder drills into your training to improve your speed and quickness on the volleyball court after that event.",
+      "passed": false,
+      "latency_ms": 16090.31,
+      "replay_time_ms": 155839.42,
+      "judge_time_ms": 5120.11,
+      "l2_peak": 21,
+      "l3_peak": 3,
+      "avg_pollution": 0.0,
+      "judge_gate": "COMPARISON",
+      "judge_reasoning": "Extracted claim 'You participated in the charity 5K run first.' does not match expected 'volleyball league'.",
+      "judge_extracted": "You participated in the charity 5K run first."
+    },
+    {
+      "index": 51,
+      "question_type": "temporal-reasoning",
+      "question": "Which event happened first, my attendance at a cultural festival or the start of my Spanish classes?",
+      "expected_answer": "Spanish classes",
+      "model_response": "Based on our conversation history, it appears that your attendance at a cultural festival occurred before you started taking Spanish classes. You mentioned attending the cultural festival in your hometown and being inspired to learn more about your heritage and plan a trip to visit relatives in Europe. Later, you asked for tips on learning Spanish phrases and expressions for your upcoming trip.",
+      "passed": false,
+      "latency_ms": 16512.63,
+      "replay_time_ms": 205132.48,
+      "judge_time_ms": 5155.42,
+      "l2_peak": 20,
+      "l3_peak": 4,
+      "avg_pollution": 0.0,
+      "judge_gate": "COMPARISON",
+      "judge_reasoning": "Extracted claim 'Your attendance at a cultural festival occurred first.' does not match expected 'Spanish classes'.",
+      "judge_extracted": "Your attendance at a cultural festival occurred first."
+    },
+    {
+      "index": 52,
+      "question_type": "temporal-reasoning",
+      "question": "Which project did I start first, the Ferrari model or the Japanese Zero fighter plane model?",
+      "expected_answer": "Japanese Zero fighter plane model",
+      "model_response": "You mentioned that you started building the Japanese Zero fighter plane about a month ago, but you didn't specify when you began working on the Ferrari 288 GTO model. However, in your previous conversation, you mentioned that you had been working on the Ferrari project for about three weeks, starting with a Sunday afternoon session where you spent five hours assembling the basic chassis and engine block.",
+      "passed": true,
+      "latency_ms": 16316.19,
+      "replay_time_ms": 172001.52,
+      "judge_time_ms": 2798.19,
+      "l2_peak": 20,
+      "l3_peak": 2,
+      "avg_pollution": 0.0,
+      "judge_gate": "SUBSTRING_MATCH",
+      "judge_reasoning": "Extracted claim 'Ferrari 288 GTO model' is a normalized substring match of expected 'Japanese Zero fighter plane model' (or vice versa) - same answer, different phrasing.",
+      "judge_extracted": "Ferrari 288 GTO model"
+    },
+    {
+      "index": 53,
+      "question_type": "temporal-reasoning",
+      "question": "Who became a parent first, Rachel or Alex?",
+      "expected_answer": "Alex",
+      "model_response": "According to the memories, Rachel is the one who had twins (Jackson and Julia) born on February 12th. Later in the conversation, Alex adopted a baby girl from China in January. So, Rachel became a parent first, with the birth of her twins.",
+      "passed": false,
+      "latency_ms": 19208.15,
+      "replay_time_ms": 180527.74,
+      "judge_time_ms": 5000.59,
+      "l2_peak": 22,
+      "l3_peak": 2,
+      "avg_pollution": 0.0,
+      "judge_gate": "COMPARISON",
+      "judge_reasoning": "Extracted claim 'Rachel became a parent first.' does not match expected 'Alex'.",
+      "judge_extracted": "Rachel became a parent first."
+    },
+    {
+      "index": 54,
+      "question_type": "temporal-reasoning",
+      "question": "How many days had passed between the day I bought a gift for my brother's graduation ceremony and the day I bought a birthday gift for my best friend?",
+      "expected_answer": "7 days. 8 days (including the last day) is also acceptable.",
+      "model_response": "You mentioned that you got a wireless headphone as a graduation gift for your brother on March 8th. You also mentioned that you got a silver necklace with a tiny pendant for your best friend's 30th birthday on the 15th of March.\n\nTo find out how many days had passed between these two events, we can subtract the earlier date from the later date:\n\nMarch 15th (best friend's birthday) - March 8th (brother's graduation gift) = 7 days\n\nSo, there were 7 days between the day you bought a gift for your b",
+      "passed": true,
+      "latency_ms": 22721.1,
+      "replay_time_ms": 129972.75,
+      "judge_time_ms": 1.08,
+      "l2_peak": 20,
+      "l3_peak": 0,
+      "avg_pollution": 0.0,
+      "judge_gate": "NUMERIC_GATE",
+      "judge_reasoning": "Numeric match: response contains [7.0], which overlaps acceptable values [7.0, 8.0].",
+      "judge_extracted": ""
+    },
+    {
+      "index": 55,
+      "question_type": "temporal-reasoning",
+      "question": "Which task did I complete first, fixing the fence or purchasing three cows from Peter?",
+      "expected_answer": "The information provided is not enough. You mentioned fixing the fence but did not mention purchasing cows from Peter.",
+      "model_response": "You didn't mention purchasing three cows from Peter. You mentioned fixing a broken fence on the east side of your property where your goats like to graze, and you said it was done about 3 weeks ago. There's no information about completing any task related to purchasing cows first.",
+      "passed": false,
+      "latency_ms": 16206.56,
+      "replay_time_ms": 179367.67,
+      "judge_time_ms": 2758.07,
+      "l2_peak": 22,
+      "l3_peak": 2,
+      "avg_pollution": 0.0,
+      "judge_gate": "EXTRACTION_NO_ANSWER",
+      "judge_reasoning": "Model response did not commit to a clear answer (detected during extraction, not opening-abstention).",
+      "judge_extracted": "NO CLEAR ANSWER"
+    },
+    {
+      "index": 56,
+      "question_type": "temporal-reasoning",
+      "question": "How long have I been working before I started my current job at Google?",
+      "expected_answer": "The information provided is not enough. From the information provided, You haven't started working at Google yet.",
+      "model_response": "You mentioned earlier that you've been working professionally for 9 years and are currently working at NovaTech. There's no mention of a previous job at Google in the memories provided. If you'd like to know more about your experience or career, please feel free to ask, and I'll do my best to help!",
+      "passed": false,
+      "latency_ms": 17054.32,
+      "replay_time_ms": 188854.8,
+      "judge_time_ms": 2705.61,
+      "l2_peak": 23,
+      "l3_peak": 1,
+      "avg_pollution": 0.0,
+      "judge_gate": "EXTRACTION_NO_ANSWER",
+      "judge_reasoning": "Model response did not commit to a clear answer (detected during extraction, not opening-abstention).",
+      "judge_extracted": "NO_CLEAR_ANSWER"
+    },
+    {
+      "index": 57,
+      "question_type": "temporal-reasoning",
+      "question": "When did I book the Airbnb in Sacramento?",
+      "expected_answer": "The information provided is not enough. You only mentioned booking Airbnb in San Francisco.",
+      "model_response": "I don't have any information about you booking an Airbnb in Sacramento. Our conversation started with your question about transportation from San Francisco Airport to your Airbnb in Haight-Ashbury, and we discussed various options for getting around San Francisco. If you'd like to discuss planning a trip to Sacramento or need help with anything else, I'm here to assist you!",
+      "passed": false,
+      "latency_ms": 15983.06,
+      "replay_time_ms": 156756.04,
+      "judge_time_ms": 0.0,
+      "l2_peak": 22,
+      "l3_peak": 2,
+      "avg_pollution": 0.0,
+      "judge_gate": "ABSTENTION_GATE",
+      "judge_reasoning": "Opening abstention detected: \"i don't have any\" appears in the first 14 words - model made no attempt to answer.",
+      "judge_extracted": ""
+    },
+    {
+      "index": 58,
+      "question_type": "temporal-reasoning",
+      "question": "How many days before I bought my iPad did I attend the Holiday Market?",
+      "expected_answer": "The information provided is not enough. You mentioned getting the iPhone 13 Pro and attending the market, but you did not mention buying an iPad.",
+      "model_response": "You attended the Holiday Market a week before Black Friday. Since you mentioned that you got your iPhone 13 Pro at a discounted price on Black Friday, it's likely that the event where you attended the Holiday Market was around mid-November or early November. However, I don't have enough information to determine exactly how many days before you bought your iPad you attended the Holiday Market.",
+      "passed": false,
+      "latency_ms": 16444.65,
+      "replay_time_ms": 165185.68,
+      "judge_time_ms": 2651.88,
+      "l2_peak": 22,
+      "l3_peak": 2,
+      "avg_pollution": 0.0,
+      "judge_gate": "EXTRACTION_NO_ANSWER",
+      "judge_reasoning": "Model response did not commit to a clear answer (detected during extraction, not opening-abstention).",
+      "judge_extracted": "NO_CLEAR_ANSWER"
+    },
+    {
+      "index": 59,
+      "question_type": "temporal-reasoning",
+      "question": "Which project did I start first, the Ferrari model or the Porsche 991 Turbo S model?",
+      "expected_answer": "The information provided is not enough. You did not mention starting the Porsche 991 Turbo S model.",
+      "model_response": "I don't have any information about you starting a Porsche 991 Turbo S model. Our conversation only mentioned a Ferrari 288 GTO and a Japanese Zero fighter plane.",
+      "passed": false,
+      "latency_ms": 15813.82,
+      "replay_time_ms": 170290.31,
+      "judge_time_ms": 0.0,
+      "l2_peak": 21,
+      "l3_peak": 1,
+      "avg_pollution": 0.0,
+      "judge_gate": "ABSTENTION_GATE",
+      "judge_reasoning": "Opening abstention detected: \"i don't have any\" appears in the first 14 words - model made no attempt to answer.",
+      "judge_extracted": ""
+    },
+    {
+      "index": 60,
+      "question_type": "temporal-reasoning",
+      "question": "Who became a parent first, Tom or Alex?",
+      "expected_answer": "The information provided is not enough. You mentioned Alex becoming a parent in January, but you didn't mention anything about Tom.",
+      "model_response": "I don't know. The conversation doesn't mention when either Tom or Alex became parents. It mentions that Alex adopted a baby girl from China in January and that Rachel is doing well with the twins Jackson and Julia, but it doesn't provide information about Tom becoming a parent.",
+      "passed": false,
+      "latency_ms": 19344.67,
+      "replay_time_ms": 178704.63,
+      "judge_time_ms": 0.0,
+      "l2_peak": 21,
+      "l3_peak": 3,
+      "avg_pollution": 0.0,
+      "judge_gate": "ABSTENTION_GATE",
+      "judge_reasoning": "Opening abstention detected: \"i don't know\" appears in the first 14 words - model made no attempt to answer.",
+      "judge_extracted": ""
+    },
+    {
+      "index": 63,
+      "question_type": "multi-session",
+      "question": "How many model kits have I worked on or bought?",
+      "expected_answer": "I have worked on or bought five model kits. The scales of the models are: Revell F-15 Eagle (scale not mentioned), Tamiya 1/48 scale Spitfire Mk.V, 1/16 scale German Tiger I tank, 1/72 scale B-29 bomber, and 1/24 scale '69 Camaro.",
+      "model_response": "I don't have information about the specific number of model kits you've worked on or bought. Our conversation started with discussing photo-etching and weathering techniques for a 1/72 scale B-29 bomber model kit, but we didn't discuss any previous projects or kits in detail.\n\nHowever, I do recall that you mentioned getting a 1/24 scale '69 Camaro at a model show last weekend. If you'd like to share more about your modeling experiences or ask for advice on specific kits, I'm here to help!",
+      "passed": false,
+      "latency_ms": 26627.08,
+      "replay_time_ms": 312785.98,
+      "judge_time_ms": 0.0,
+      "l2_peak": 24,
+      "l3_peak": 22,
+      "avg_pollution": 0.0,
+      "judge_gate": "ABSTENTION_GATE",
+      "judge_reasoning": "Opening abstention detected: \"i don't have information\" appears in the first 14 words - model made no attempt to answer.",
+      "judge_extracted": ""
+    },
+    {
+      "index": 64,
+      "question_type": "multi-session",
+      "question": "How many days did I spend on camping trips in the United States this year?",
+      "expected_answer": "8 days.",
+      "model_response": "You mentioned a 7-day family road trip to Utah in February and a 5-day camping trip to Yellowstone National Park last month. However, I don't have information about any other camping trips you may have taken this year. If you'd like to share more about your travels or ask specific questions about those trips, I'm here to help!",
+      "passed": false,
+      "latency_ms": 21207.19,
+      "replay_time_ms": 265438.42,
+      "judge_time_ms": 2697.78,
+      "l2_peak": 22,
+      "l3_peak": 14,
+      "avg_pollution": 0.0,
+      "judge_gate": "EXTRACTION_NO_ANSWER",
+      "judge_reasoning": "Model response did not commit to a clear answer (detected during extraction, not opening-abstention).",
+      "judge_extracted": "NO CLEAR ANSWER"
+    },
+    {
+      "index": 65,
+      "question_type": "multi-session",
+      "question": "How many weeks did it take me to watch all the Marvel Cinematic Universe movies and the main Star Wars films?",
+      "expected_answer": "3.5 weeks",
+      "model_response": "You watched all 22 MCU movies in about two weeks. As for the Star Wars marathon, you completed it in a week and a half.",
+      "passed": true,
+      "latency_ms": 19509.05,
+      "replay_time_ms": 212219.38,
+      "judge_time_ms": 5054.96,
+      "l2_peak": 22,
+      "l3_peak": 2,
+      "avg_pollution": 0.0,
+      "judge_gate": "COMPARISON",
+      "judge_reasoning": "Extracted claim 'Two weeks and a week and a half.' matches expected '3.5 weeks'.",
+      "judge_extracted": "Two weeks and a week and a half."
+    },
+    {
+      "index": 67,
+      "question_type": "multi-session",
+      "question": "How much total money have I spent on bike-related expenses since the start of the year?",
+      "expected_answer": "$185",
+      "model_response": "To estimate the total amount you've spent on bike-related expenses since the start of the year, I'll need to recall some information from our previous conversations.\n\nFrom what I can remember, here are some bike-related expenses you mentioned:\n\n1. **Bell Zephyr helmet**: You purchased this helmet for $120 on April 10th.\n2. **New set of bike lights**: These were installed and cost $40.\n3. **Chain replacement**: The chain was replaced due to stuck gears, and the mechanic charged you $25.\n\nPlease n",
+      "passed": true,
+      "latency_ms": 27650.69,
+      "replay_time_ms": 322427.55,
+      "judge_time_ms": 1.0,
+      "l2_peak": 27,
+      "l3_peak": 19,
+      "avg_pollution": 0.0,
+      "judge_gate": "NUMERIC_GATE",
+      "judge_reasoning": "Numeric match: response contains [185.0], which overlaps acceptable values [185.0].",
+      "judge_extracted": ""
+    },
+    {
+      "index": 68,
+      "question_type": "multi-session",
+      "question": "How many hours in total did I spend driving to my three road trip destinations combined?",
+      "expected_answer": "15 hours for getting to the three destinations (or 30 hours for the round trip)",
+      "model_response": "You mentioned that you drove for 5 hours to get to your destination in Tennessee. Unfortunately, I don't have any information about the other two road trips or their respective driving times. If you'd like to share more details about those trips, I can try to help you calculate the total driving time!",
+      "passed": false,
+      "latency_ms": 22909.19,
+      "replay_time_ms": 289518.12,
+      "judge_time_ms": 2747.6,
+      "l2_peak": 28,
+      "l3_peak": 8,
+      "avg_pollution": 0.0,
+      "judge_gate": "EXTRACTION_NO_ANSWER",
+      "judge_reasoning": "Model response did not commit to a clear answer (detected during extraction, not opening-abstention).",
+      "judge_extracted": "NO_CLEAR_ANSWER"
+    },
+    {
+      "index": 69,
+      "question_type": "multi-session",
+      "question": "How many different doctors did I visit?",
+      "expected_answer": "I visited three different doctors: a primary care physician, an ENT specialist, and a dermatologist.",
+      "model_response": "Based on our conversation memories, you visited at least 3 different doctors:\n\n1. Dr. Lee (dermatologist) for a biopsy on a suspicious mole\n2. Dr. Patel (ENT specialist) for chronic sinusitis diagnosis and treatment\n3. Your primary care physician (not explicitly named in the conversation) to discuss your fatigue and joint pain symptoms, as well as rule out other underlying conditions.\n\nPlease let me know if I'm missing any doctors from our conversation!",
+      "passed": true,
+      "latency_ms": 23012.02,
+      "replay_time_ms": 263462.21,
+      "judge_time_ms": 2777.18,
+      "l2_peak": 24,
+      "l3_peak": 12,
+      "avg_pollution": 0.0,
+      "judge_gate": "SUBSTRING_MATCH",
+      "judge_reasoning": "Extracted claim 'At least 3 different doctors.' is a normalized substring match of expected 'I visited three different doctors: a primary care physician, an ENT specialist, and a dermatologist.' (or vice versa) - same answer, different phrasing.",
+      "judge_extracted": "At least 3 different doctors."
+    },
+    {
+      "index": 70,
+      "question_type": "multi-session",
+      "question": "What time did I go to bed on the day before I had a doctor's appointment?",
+      "expected_answer": "2 AM",
+      "model_response": "You mentioned that you didn't get to bed until 2 AM last Wednesday, which made Thursday morning a struggle. This was after your doctor's appointment at 10 AM on Thursday.",
+      "passed": true,
+      "latency_ms": 19269.16,
+      "replay_time_ms": 146303.59,
+      "judge_time_ms": 1.0,
+      "l2_peak": 21,
+      "l3_peak": 3,
+      "avg_pollution": 0.0,
+      "judge_gate": "NUMERIC_GATE",
+      "judge_reasoning": "Numeric match: response contains [2.0], which overlaps acceptable values [2.0].",
+      "judge_extracted": ""
+    },
+    {
+      "index": 72,
+      "question_type": "multi-session",
+      "question": "How many movie festivals that I attended?",
+      "expected_answer": "I attended four movie festivals.",
+      "model_response": "You mentioned attending AFI Fest, but I don't have information on other film festivals you may have attended. If you'd like to share more about your experiences at these events or discuss specific films and their cinematography, I'm here to help!",
+      "passed": false,
+      "latency_ms": 23427.57,
+      "replay_time_ms": 322357.06,
+      "judge_time_ms": 0.0,
+      "l2_peak": 24,
+      "l3_peak": 12,
+      "avg_pollution": 0.0,
+      "judge_gate": "ABSTENTION_GATE",
+      "judge_reasoning": "Opening abstention detected: \"i don't have information\" appears in the first 14 words - model made no attempt to answer.",
+      "judge_extracted": ""
+    },
+    {
+      "index": 73,
+      "question_type": "multi-session",
+      "question": "How many days did I take social media breaks in total?",
+      "expected_answer": "17 days",
+      "model_response": "You took a 10-day break from social media in mid-February, but there's no mention of any other social media breaks. So, the answer is just one 10-day break.",
+      "passed": false,
+      "latency_ms": 20427.6,
+      "replay_time_ms": 202676.18,
+      "judge_time_ms": 5047.7,
+      "l2_peak": 22,
+      "l3_peak": 2,
+      "avg_pollution": 0.0,
+      "judge_gate": "COMPARISON",
+      "judge_reasoning": "Extracted claim 'One 10-day break.' does not match expected '17 days'.",
+      "judge_extracted": "One 10-day break."
+    },
+    {
+      "index": 75,
+      "question_type": "multi-session",
+      "question": "What is the total amount I spent on luxury items in the past few months?",
+      "expected_answer": "$2,500",
+      "model_response": "I don't have enough information to provide an accurate answer. You mentioned that you've been splurging on luxury items every now and then, but we didn't discuss specific purchases or amounts. If you'd like to track your expenses and categorize them, I can help you with a simple expense tracker template.",
+      "passed": false,
+      "latency_ms": 23261.02,
+      "replay_time_ms": 317262.73,
+      "judge_time_ms": 0.0,
+      "l2_peak": 25,
+      "l3_peak": 11,
+      "avg_pollution": 0.0,
+      "judge_gate": "ABSTENTION_GATE",
+      "judge_reasoning": "Opening abstention detected: \"i don't have enough information\" appears in the first 14 words - model made no attempt to answer.",
+      "judge_extracted": ""
+    },
+    {
+      "index": 76,
+      "question_type": "multi-session",
+      "question": "How many hours have I spent playing games in total?",
+      "expected_answer": "140 hours",
+      "model_response": "I don't have enough information to provide an accurate estimate of the total number of hours you've spent playing games. Our conversation has focused on recommending and discussing various games, but we haven't tracked your playtime or kept a record of your gaming history. If you'd like to share more about your gaming habits or specific titles you've played, I can try to help you estimate your total playtime.",
+      "passed": false,
+      "latency_ms": 27340.83,
+      "replay_time_ms": 524786.06,
+      "judge_time_ms": 1.0,
+      "l2_peak": 24,
+      "l3_peak": 36,
+      "avg_pollution": 0.0,
+      "judge_gate": "ABSTENTION_GATE",
+      "judge_reasoning": "Opening abstention detected: \"i don't have enough information\" appears in the first 14 words - model made no attempt to answer.",
+      "judge_extracted": ""
+    },
+    {
+      "index": 77,
+      "question_type": "multi-session",
+      "question": "How many weddings have I attended in this year?",
+      "expected_answer": "I attended three weddings. The couples were Rachel and Mike, Emily and Sarah, and Jen and Tom.",
+      "model_response": "I don't have enough information to provide an accurate answer. Our conversation started with wedding planning and ceremony ideas, but we didn't discuss the number of weddings you've attended. If you'd like to share that information, I can try to help!",
+      "passed": false,
+      "latency_ms": 23110.8,
+      "replay_time_ms": 284254.36,
+      "judge_time_ms": 0.0,
+      "l2_peak": 26,
+      "l3_peak": 10,
+      "avg_pollution": 0.0,
+      "judge_gate": "ABSTENTION_GATE",
+      "judge_reasoning": "Opening abstention detected: \"i don't have enough information\" appears in the first 14 words - model made no attempt to answer.",
+      "judge_extracted": ""
+    },
+    {
+      "index": 79,
+      "question_type": "multi-session",
+      "question": "How many pieces of furniture did I buy, assemble, sell, or fix in the past few months?",
+      "expected_answer": "4",
+      "model_response": "Based on our conversation, it seems that you:\n\n1. Bought a new coffee table with metal legs from West Elm.\n2. Assembled an IKEA bookshelf for your home office.\n\nYou also mentioned fixing a wobbly leg on your kitchen table, but I don't recall any information about buying or selling furniture.",
+      "passed": false,
+      "latency_ms": 23640.62,
+      "replay_time_ms": 302513.23,
+      "judge_time_ms": 5273.65,
+      "l2_peak": 26,
+      "l3_peak": 16,
+      "avg_pollution": 0.0,
+      "judge_gate": "COMPARISON",
+      "judge_reasoning": "Extracted claim 'You bought 1 piece of furniture, assembled 1 piece, and fixed 1 piece.' does not match expected '4'.",
+      "judge_extracted": "You bought 1 piece of furniture, assembled 1 piece, and fixed 1 piece."
+    },
+    {
+      "index": 83,
+      "question_type": "multi-session",
+      "question": "How many properties did I view before making an offer on the townhouse in the Brookside neighborhood?",
+      "expected_answer": "I viewed four properties before making an offer on the townhouse in the Brookside neighborhood. The reasons I didn't make an offer on them were: the kitchen of the bungalow needed serious renovation, the property in Cedar Creek was out of my budget, the noise from the highway was a deal-breaker for the 1-bedroom condo, and my offer on the 2-bedroom condo was rejected due to a higher bid.",
+      "model_response": "You viewed at least one property, specifically the 3-bedroom townhouse in the Cedar Creek neighborhood on February 1st. You also mentioned seeing another property in the Brookside neighborhood on February 22nd and putting in an offer there. I don't have information about other properties you may have viewed before making an offer on the townhouse in Brookside.",
+      "passed": true,
+      "latency_ms": 28115.95,
+      "replay_time_ms": 486132.99,
+      "judge_time_ms": 2874.12,
+      "l2_peak": 27,
+      "l3_peak": 33,
+      "avg_pollution": 0.0,
+      "judge_gate": "SUBSTRING_MATCH",
+      "judge_reasoning": "Extracted claim 'You viewed at least one property.' is a normalized substring match of expected \"I viewed four properties before making an offer on the townhouse in the Brookside neighborhood. The reasons I didn't make an offer on them were: the kitchen of the bungalow needed serious renovation, the property in Cedar Creek was out of my budget, the noise from the highway was a deal-breaker for the 1-bedroom condo, and my offer on the 2-bedroom condo was rejected due to a higher bid.\" (or vice versa) - same answer, different phrasing.",
+      "judge_extracted": "You viewed at least one property."
+    },
+    {
+      "index": 85,
+      "question_type": "multi-session",
+      "question": "How many hours of jogging and yoga did I do last week?",
+      "expected_answer": "0.5 hours",
+      "model_response": "I don't have enough information to provide a specific answer. You mentioned going for a 30-minute jog on Saturday, but I don't have any other details about your jogging or yoga activities from the previous week. If you'd like to share more information or clarify what you're looking for, I can try to help further.",
+      "passed": false,
+      "latency_ms": 22818.43,
+      "replay_time_ms": 279308.89,
+      "judge_time_ms": 0.0,
+      "l2_peak": 24,
+      "l3_peak": 12,
+      "avg_pollution": 0.0,
+      "judge_gate": "ABSTENTION_GATE",
+      "judge_reasoning": "Opening abstention detected: \"i don't have enough information\" appears in the first 14 words - model made no attempt to answer.",
+      "judge_extracted": ""
+    },
+    {
+      "index": 86,
+      "question_type": "multi-session",
+      "question": "Which social media platform did I gain the most followers on over the past month?",
+      "expected_answer": "TikTok",
+      "model_response": "Based on our conversation, it seems that your Twitter follower count jumped from 420 to 540 over the past month. This is a significant increase of 128 followers, which suggests that you gained the most followers on Twitter over the past month.",
+      "passed": false,
+      "latency_ms": 22457.67,
+      "replay_time_ms": 257925.49,
+      "judge_time_ms": 4965.44,
+      "l2_peak": 25,
+      "l3_peak": 9,
+      "avg_pollution": 0.0,
+      "judge_gate": "COMPARISON",
+      "judge_reasoning": "Extracted claim 'Twitter' does not match expected 'TikTok'.",
+      "judge_extracted": "Twitter"
+    },
+    {
+      "index": 87,
+      "question_type": "multi-session",
+      "question": "Which grocery store did I spend the most money at in the past month?",
+      "expected_answer": "Thrive Market",
+      "model_response": "Based on our previous conversations, it seems like you spent around $150 on organic and sustainable products with Thrive Market last month.",
+      "passed": true,
+      "latency_ms": 24115.31,
+      "replay_time_ms": 370954.42,
+      "judge_time_ms": 2720.9,
+      "l2_peak": 26,
+      "l3_peak": 22,
+      "avg_pollution": 0.0,
+      "judge_gate": "SUBSTRING_MATCH",
+      "judge_reasoning": "Extracted claim 'Thrive Market' is a normalized substring match of expected 'Thrive Market' (or vice versa) - same answer, different phrasing.",
+      "judge_extracted": "Thrive Market"
+    },
+    {
+      "index": 88,
+      "question_type": "multi-session",
+      "question": "How much more did I spend on accommodations per night in Hawaii compared to Tokyo?",
+      "expected_answer": "$270",
+      "model_response": "You mentioned that your luxurious resort stay in Maui costs over $300 per night. In contrast, the hostels in Japan we discussed earlier had prices ranging from \u00a52,000 to \u00a55,000 (around $18-$45 USD) per night. So, it seems you spent significantly more on accommodations in Hawaii compared to Tokyo.",
+      "passed": false,
+      "latency_ms": 19266.1,
+      "replay_time_ms": 192430.05,
+      "judge_time_ms": 5138.72,
+      "l2_peak": 20,
+      "l3_peak": 4,
+      "avg_pollution": 0.0,
+      "judge_gate": "COMPARISON",
+      "judge_reasoning": "Extracted claim 'You spent significantly more on accommodations in Hawaii compared to Tokyo.' does not match expected '$270'.",
+      "judge_extracted": "You spent significantly more on accommodations in Hawaii compared to Tokyo."
+    },
+    {
+      "index": 90,
+      "question_type": "multi-session",
+      "question": "What is the average age of me, my parents, and my grandparents?",
+      "expected_answer": "59.6",
+      "model_response": "I don't have enough information to calculate the average age. You mentioned your grandma's 75 and you're in your early thirties, but I don't know your parents' ages or any other relevant details. If you'd like to share more about their ages, I can try to help with the calculation.",
+      "passed": false,
+      "latency_ms": 23427.42,
+      "replay_time_ms": 254052.32,
+      "judge_time_ms": 0.0,
+      "l2_peak": 25,
+      "l3_peak": 7,
+      "avg_pollution": 0.0,
+      "judge_gate": "ABSTENTION_GATE",
+      "judge_reasoning": "Opening abstention detected: \"i don't have enough information\" appears in the first 14 words - model made no attempt to answer.",
+      "judge_extracted": ""
+    },
+    {
+      "index": 92,
+      "question_type": "multi-session",
+      "question": "How many days did it take for me to receive the new remote shutter release after I ordered it?",
+      "expected_answer": "5 days. 6 days (including the last day) is also acceptable.",
+      "model_response": "You received your new remote shutter release on February 10th. You mentioned that you ordered it online, but unfortunately, you didn't specify the exact date when you placed the order. However, since you said you realized you lost your old one during a photo walk on February 5th and then ordered a new one, it's likely that you ordered it around or after February 5th.\n\nGiven this information, I can only estimate the delivery time. Assuming standard shipping times for online orders, it might have ",
+      "passed": true,
+      "latency_ms": 17401.28,
+      "replay_time_ms": 169166.68,
+      "judge_time_ms": 5046.16,
+      "l2_peak": 20,
+      "l3_peak": 4,
+      "avg_pollution": 0.0,
+      "judge_gate": "COMPARISON",
+      "judge_reasoning": "Extracted claim '2-7 business days' matches expected '5 days. 6 days (including the last day) is also acceptable.'.",
+      "judge_extracted": "2-7 business days"
+    },
+    {
+      "index": 93,
+      "question_type": "multi-session",
+      "question": "How many health-related devices do I use in a day?",
+      "expected_answer": "4",
+      "model_response": "Based on our previous conversations, you mentioned using the following health-related devices:\n\n1. Fitbit Versa 3 (for tracking activity levels, sleep patterns, and heart rate)\n2. Nebulizer machine (for inhalation treatments)\n\nYou also mentioned considering using other devices, such as a humidifier or a fitness tracker with additional features.\n\nPlease let me know if I've missed any other health-related devices you use regularly!",
+      "passed": false,
+      "latency_ms": 28067.14,
+      "replay_time_ms": 445932.47,
+      "judge_time_ms": 4985.32,
+      "l2_peak": 27,
+      "l3_peak": 33,
+      "avg_pollution": 0.0,
+      "judge_gate": "COMPARISON",
+      "judge_reasoning": "Extracted claim '2 devices' does not match expected '4'.",
+      "judge_extracted": "2 devices"
+    },
+    {
+      "index": 95,
+      "question_type": "multi-session",
+      "question": "How many fitness classes do I attend in a typical week?",
+      "expected_answer": 5,
+      "model_response": "I don't have enough information to answer that question. You mentioned attending Zumba classes on Tuesdays and Thursdays at 7:00 PM, but you didn't mention the number of other fitness classes you attend per week. Could you provide more context or details about your fitness routine?",
+      "passed": false,
+      "latency_ms": 24006.4,
+      "replay_time_ms": 309801.19,
+      "judge_time_ms": 0.97,
+      "l2_peak": 26,
+      "l3_peak": 16,
+      "avg_pollution": 0.0,
+      "judge_gate": "ABSTENTION_GATE",
+      "judge_reasoning": "Opening abstention detected: \"i don't have enough information\" appears in the first 14 words - model made no attempt to answer.",
+      "judge_extracted": ""
+    },
+    {
+      "index": 96,
+      "question_type": "multi-session",
+      "question": "How many days did it take for my laptop backpack to arrive after I bought it?",
+      "expected_answer": "5 days. 6 days (including the last day) is also acceptable.",
+      "model_response": "You purchased your laptop backpack from Amazon on January 15th. It arrived on January 20th. Therefore, it took approximately 5 days for your laptop backpack to arrive after you bought it.",
+      "passed": true,
+      "latency_ms": 13855.37,
+      "replay_time_ms": 188985.38,
+      "judge_time_ms": 1.28,
+      "l2_peak": 21,
+      "l3_peak": 3,
+      "avg_pollution": 0.0,
+      "judge_gate": "NUMERIC_GATE",
+      "judge_reasoning": "Numeric match: response contains [5.0], which overlaps acceptable values [5.0, 6.0].",
+      "judge_extracted": ""
+    },
+    {
+      "index": 98,
+      "question_type": "multi-session",
+      "question": "How much money did I raise in total through all the charity events I participated in?",
+      "expected_answer": "$5,850",
+      "model_response": "I don't have that information in my memory. We only discussed your participation in a Bike-a-Thon for Cancer Research, where you raised $5,000, and a charity yoga event that raised $600 for a local animal shelter. If you'd like to discuss other events or provide more context, I'll do my best to help.",
+      "passed": true,
+      "latency_ms": 22275.63,
+      "replay_time_ms": 259411.21,
+      "judge_time_ms": 0.0,
+      "l2_peak": 24,
+      "l3_peak": 10,
+      "avg_pollution": 0.0,
+      "judge_gate": "NUMERIC_GATE",
+      "judge_reasoning": "Numeric match: response contains [5.0], which overlaps acceptable values [5.0, 850.0].",
+      "judge_extracted": ""
+    },
+    {
+      "index": 100,
+      "question_type": "multi-session",
+      "question": "How many musical instruments do I currently own?",
+      "expected_answer": "I currently own 4 musical instruments. I've had the Fender Stratocaster electric guitar for 5 years, the Yamaha FG800 acoustic guitar for 8 years, the 5-piece Pearl Export drum set for an unspecified amount of time, and the Korg B1 piano for 3 years.",
+      "model_response": "I don't have information about the number of musical instruments you currently own. Our conversation started with your thoughts about selling your old drum set and getting a new ukulele, but we didn't discuss your current instrument collection in detail. If you'd like to share more about your instruments or ask for recommendations, I'm here to help!",
+      "passed": false,
+      "latency_ms": 27600.6,
+      "replay_time_ms": 425505.08,
+      "judge_time_ms": 0.0,
+      "l2_peak": 27,
+      "l3_peak": 26,
+      "avg_pollution": 0.0,
+      "judge_gate": "ABSTENTION_GATE",
+      "judge_reasoning": "Opening abstention detected: \"i don't have information\" appears in the first 14 words - model made no attempt to answer.",
+      "judge_extracted": ""
+    }
+  ],
+  "retrieval_traces": [
+    {
+      "query": "What was the first issue I had with my new car after its first service?",
+      "retrieved_count": 5,
+      "rejected_count": 0,
+      "retrieved_ids": [
+        "fc9f33ae-8157-459d-a7b4-fded2c1bf18e",
+        "f4161cfa-c388-4a8c-817f-5f569c7f2415",
+        "46234d0d-5038-418d-8d63-ec47f2e8813f",
+        "cc2f345c-cb1f-4cf4-894e-f8ffd0648cc0",
+        "46209495-08c7-485f-88f1-66e747c5ab25"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "Which event did I attend first, the 'Effective Time Management' workshop or the 'Data Analysis using Python' webinar?",
+      "retrieved_count": 2,
+      "rejected_count": 0,
+      "retrieved_ids": [],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "Which vehicle did I take care of first in February, the bike or the car?",
+      "retrieved_count": 2,
+      "rejected_count": 0,
+      "retrieved_ids": [],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "Which device did I got first, the Samsung Galaxy S22 or the Dell XPS 13?",
+      "retrieved_count": 8,
+      "rejected_count": 0,
+      "retrieved_ids": [
+        "7fa3e447-09e1-4a4c-948d-28e64fa93c9b"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many days before the team meeting I was preparing for did I attend the workshop on 'Effective Communication in the Workplace'?",
+      "retrieved_count": 4,
+      "rejected_count": 0,
+      "retrieved_ids": [
+        "c861ded2-a71c-414d-a319-8ec1ce07eb69",
+        "cde86207-f7ec-48cc-8802-26b533c51872",
+        "798e068e-3efd-4c95-8f29-3e2d80427549",
+        "99c86e89-6f5e-4034-9051-1e77f0ec4448"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many days had passed between the Sunday mass at St. Mary's Church and the Ash Wednesday service at the cathedral?",
+      "retrieved_count": 1,
+      "rejected_count": 0,
+      "retrieved_ids": [],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many days did it take for me to find a house I loved after starting to work with Rachel?",
+      "retrieved_count": 5,
+      "rejected_count": 0,
+      "retrieved_ids": [],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "Which seeds were started first, the tomatoes or the marigolds?",
+      "retrieved_count": 2,
+      "rejected_count": 0,
+      "retrieved_ids": [],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many days had passed between the Hindu festival of Holi and the Sunday mass at St. Mary's Church?",
+      "retrieved_count": 5,
+      "rejected_count": 0,
+      "retrieved_ids": [],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many days before the 'Rack Fest' did I participate in the 'Turbocharged Tuesdays' event?",
+      "retrieved_count": 5,
+      "rejected_count": 0,
+      "retrieved_ids": [],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "Which pair of shoes did I clean last month?",
+      "retrieved_count": 5,
+      "rejected_count": 0,
+      "retrieved_ids": [
+        "8006445b-a667-42be-a8d7-7fba08d810af",
+        "377a7328-70c3-48f5-ae27-0920ac324820",
+        "4e5eec30-3cdc-4e78-bea0-500bbc34e23b",
+        "4b769df4-0a3c-4848-b1aa-7c0b22657d16"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "Which event happened first, the purchase of the coffee maker or the malfunction of the stand mixer?",
+      "retrieved_count": 4,
+      "rejected_count": 0,
+      "retrieved_ids": [
+        "d74dd8d7-cf81-4e5c-a5a3-bc787855ba87",
+        "657a0ba7-8d23-4587-8523-0c71cfb8ea92"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many days had passed between the 'Walk for Hunger' event and the 'Coastal Cleanup' event?",
+      "retrieved_count": 5,
+      "rejected_count": 0,
+      "retrieved_ids": [],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "Which item did I purchase first, the dog bed for Max or the training pads for Luna?",
+      "retrieved_count": 3,
+      "rejected_count": 0,
+      "retrieved_ids": [
+        "1b007e95-d6f9-4e60-a9dc-ef74abaf8943"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "Which task did I complete first, fixing the fence or trimming the goats' hooves?",
+      "retrieved_count": 1,
+      "rejected_count": 0,
+      "retrieved_ids": [],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many charity events did I participate in before the 'Run for the Cure' event?",
+      "retrieved_count": 5,
+      "rejected_count": 0,
+      "retrieved_ids": [
+        "e7f6141a-382c-4630-96e9-5ca01c23952d",
+        "2547de42-53c8-4ada-b72e-813ac2cbeb9c",
+        "3d8e9e0a-28a1-490e-b4ab-0992da9d2dc7",
+        "b6d7838f-6dec-47c7-bb42-54d7e65a3737",
+        "a7014a1f-73c1-4c7a-8efa-f7f195a4d4ff"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How long have I been working before I started my current job at NovaTech?",
+      "retrieved_count": 5,
+      "rejected_count": 0,
+      "retrieved_ids": [
+        "52efa3d7-31dd-4350-8d9a-d85afadcac65"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "Which book did I finish reading first, 'The Hate U Give' or 'The Nightingale'?",
+      "retrieved_count": 4,
+      "rejected_count": 0,
+      "retrieved_ids": [
+        "29f0849e-fe12-47b6-a24e-50b3f6b8d79a"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "Which device did I set up first, the smart thermostat or the mesh network system?",
+      "retrieved_count": 1,
+      "rejected_count": 0,
+      "retrieved_ids": [
+        "0d02015f-a112-4060-9a0b-13a2317b7f9f"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many months ago did I book the Airbnb in San Francisco?",
+      "retrieved_count": 5,
+      "rejected_count": 0,
+      "retrieved_ids": [
+        "a7d0c8d9-5c35-4a8a-9fdf-c5435fb6d5bc"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How long did I take to finish 'The Seven Husbands of Evelyn Hugo' and 'The Nightingale' combined?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "0c30328f-ad43-4fac-9768-36791eb2f66f",
+        "2de324e8-5807-463c-b36a-cab9df4c945a",
+        "33ac8a99-1b1a-4402-a930-de4b1c230674",
+        "70576689-43ff-4528-a8f1-5a9e42b0ea6b"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "What was the date on which I attended the first BBQ event in June?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "d5611879-c3d8-42cd-95eb-95f06e97f971"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many days before I bought the iPhone 13 Pro did I attend the Holiday Market?",
+      "retrieved_count": 5,
+      "rejected_count": 0,
+      "retrieved_ids": [],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "Which show did I start watching first, 'The Crown' or 'Game of Thrones'?",
+      "retrieved_count": 4,
+      "rejected_count": 0,
+      "retrieved_ids": [
+        "edffa32d-0319-4571-9276-3edb76e680f4"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How long had I been a member of 'Book Lovers Unite' when I attended the meetup?",
+      "retrieved_count": 1,
+      "rejected_count": 0,
+      "retrieved_ids": [
+        "51f4e14a-24b3-460d-a637-0962db4c6fb8"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How long had I been watching stand-up comedy specials regularly when I attended the open mic night at the local comedy club?",
+      "retrieved_count": 5,
+      "rejected_count": 0,
+      "retrieved_ids": [
+        "ebdd5c48-fa2b-4c68-b9d5-30f61f095ee0",
+        "5e58d848-289c-4e51-b212-774ed58c847c"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "What time do I wake up on Tuesdays and Thursdays?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "c5ba4ef4-4050-4341-a4ef-8ac367b92bfe",
+        "7cda9ee2-4b60-417b-8a3c-cb3d731196b7"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many days had passed since I bought my Adidas running shoes when I realized one of the shoelaces on my old Converse sneakers had broken?",
+      "retrieved_count": 5,
+      "rejected_count": 0,
+      "retrieved_ids": [
+        "0a16bff6-09b8-4f86-a538-f41e4a361a6a"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "Which event happened first, the road trip to the coast or the arrival of the new prime lens?",
+      "retrieved_count": 2,
+      "rejected_count": 0,
+      "retrieved_ids": [],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "Which airline did I fly with the most in March and April?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "8d57e759-995d-44f9-9ef9-7dfa4118a486",
+        "b8884934-86fe-4251-bdbc-19aa2ed1ee88",
+        "66ed3421-e786-4fa4-beaf-19180ba232ba",
+        "030e7f74-32c9-4c0d-929a-4a1a1b94cca5",
+        "46f6a3cd-2906-4c3a-8c7d-b2cc36af0b54",
+        "55449a1e-281a-4e9b-8994-031f4306e181",
+        "145c79df-167f-41fb-9ff6-c5cc6c1417db"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How long had I been bird watching when I attended the bird watching workshop?",
+      "retrieved_count": 5,
+      "rejected_count": 0,
+      "retrieved_ids": [],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "Which trip did I take first, the one to Europe with family or the solo trip to Thailand?",
+      "retrieved_count": 1,
+      "rejected_count": 0,
+      "retrieved_ids": [],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "Which device did I set up first, the smart thermostat or the new router?",
+      "retrieved_count": 2,
+      "rejected_count": 0,
+      "retrieved_ids": [
+        "ea443a30-26b9-4ae2-9285-bda08393d97e",
+        "8ff5d727-7260-4fa9-9fee-11b27a43dc15"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "Which health issue did I deal with first, the persistent cough or the skin tag removal?",
+      "retrieved_count": 1,
+      "rejected_count": 0,
+      "retrieved_ids": [
+        "1c9340a4-1cf8-43df-822a-55813677f9e9"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How old was I when I moved to the United States?",
+      "retrieved_count": 5,
+      "rejected_count": 0,
+      "retrieved_ids": [
+        "8525ac75-f045-44f4-83c7-71e7d5d2e4e3"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How long had I been using the new area rug when I rearranged my living room furniture?",
+      "retrieved_count": 5,
+      "rejected_count": 0,
+      "retrieved_ids": [
+        "30672f4a-0249-43f0-bab9-d0d6922af459",
+        "5e88511c-7290-4e20-bdaa-de3c5e413dfe"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many days before my best friend's birthday party did I order her gift?",
+      "retrieved_count": 5,
+      "rejected_count": 0,
+      "retrieved_ids": [
+        "071ad85a-84a4-4910-9180-79773ac0e1ab"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "Which trip did the narrator take first, the solo trip to Europe or the family road trip across the American Southwest?",
+      "retrieved_count": 1,
+      "rejected_count": 0,
+      "retrieved_ids": [],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How long did I use my new binoculars before I saw the American goldfinches returning to the area?",
+      "retrieved_count": 5,
+      "rejected_count": 0,
+      "retrieved_ids": [
+        "aa3744d0-3ea7-44ab-ba6e-5b4bc994e114"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "Who did I meet first, Mark and Sarah or Tom?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "d4d8f2a0-44e6-4d22-9bea-d077bfc877ac"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many weeks have I been accepted into the exchange program when I started attending the pre-departure orientation sessions?",
+      "retrieved_count": 5,
+      "rejected_count": 0,
+      "retrieved_ids": [
+        "75a1e9c8-a9bd-4f44-9299-1bb235ebc644"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "Which group did I join first, 'Page Turners' or 'Marketing Professionals'?",
+      "retrieved_count": 1,
+      "rejected_count": 0,
+      "retrieved_ids": [],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How long had I been taking guitar lessons when I bought the new guitar amp?",
+      "retrieved_count": 5,
+      "rejected_count": 0,
+      "retrieved_ids": [],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "Which streaming service did I start using most recently?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "b81fedc4-827b-4466-a92a-bbd15f40bb53",
+        "fd1460c4-4e5b-4c12-ba8e-e620a3f6fad3",
+        "e81aa702-ea0e-4921-b07f-110769627dde",
+        "23e1f539-fd43-4497-a1e3-00014e2ef69a",
+        "08db4070-2ed5-421f-89b4-fa86a3f9a791",
+        "f736e27d-dd2b-43a7-beaa-afb8dff49813",
+        "c3a4deea-ba92-4937-bab7-fd02618e06a1"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many months before my anniversary did Rachel get engaged?",
+      "retrieved_count": 5,
+      "rejected_count": 0,
+      "retrieved_ids": [
+        "feb85e02-7153-4c7d-9df1-271b6caef508",
+        "cd432dde-ad40-451f-b4da-e4116d926dbe"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "Which event happened first, the narrator losing their phone charger or the narrator receiving their new phone case?",
+      "retrieved_count": 4,
+      "rejected_count": 0,
+      "retrieved_ids": [],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "Who did I meet first, the woman selling jam at the farmer's market or the tourist from Australia?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "9d43a7af-010b-4752-90fa-e690b272b6b5",
+        "06e71834-266d-4a4e-8532-3fb081832521"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "Which event happened first, the meeting with Rachel or the pride parade?",
+      "retrieved_count": 4,
+      "rejected_count": 0,
+      "retrieved_ids": [],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "Which gift did I buy first, the necklace for my sister or the photo album for my mom?",
+      "retrieved_count": 4,
+      "rejected_count": 0,
+      "retrieved_ids": [],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "Which event did I participate in first, the volleyball league or the charity 5K run to raise money for a local children's hospital?",
+      "retrieved_count": 2,
+      "rejected_count": 0,
+      "retrieved_ids": [
+        "310e0951-8c77-413b-8b18-8410c41a56d7"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "Which event happened first, my attendance at a cultural festival or the start of my Spanish classes?",
+      "retrieved_count": 8,
+      "rejected_count": 0,
+      "retrieved_ids": [],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "Which project did I start first, the Ferrari model or the Japanese Zero fighter plane model?",
+      "retrieved_count": 3,
+      "rejected_count": 0,
+      "retrieved_ids": [],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "Who became a parent first, Rachel or Alex?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "23da4618-135c-46b3-864c-61a05eeb7352",
+        "8753c6ab-0a94-40c2-aadb-b0d4b0a28f88"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many days had passed between the day I bought a gift for my brother's graduation ceremony and the day I bought a birthday gift for my best friend?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "Which task did I complete first, fixing the fence or purchasing three cows from Peter?",
+      "retrieved_count": 8,
+      "rejected_count": 0,
+      "retrieved_ids": [
+        "10563ca3-7f91-4cda-8425-95e50ec638ad",
+        "02d90f22-aa43-44b6-afd2-34abacc73009"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How long have I been working before I started my current job at Google?",
+      "retrieved_count": 5,
+      "rejected_count": 0,
+      "retrieved_ids": [
+        "a2fc4b81-2bea-4a1d-b520-8d23cf00a124",
+        "3f9b612d-4ee3-4cef-9df4-2f5f39657773",
+        "d6b958f0-6514-4add-864a-30becd483746"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "When did I book the Airbnb in Sacramento?",
+      "retrieved_count": 5,
+      "rejected_count": 0,
+      "retrieved_ids": [
+        "521cb925-b98e-4ac5-9285-8a5e3dd5cedc",
+        "949151ef-645d-450e-82e4-1c2b1e55e319"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many days before I bought my iPad did I attend the Holiday Market?",
+      "retrieved_count": 5,
+      "rejected_count": 0,
+      "retrieved_ids": [
+        "3f446cfb-ace7-4728-af23-6f79f028f433",
+        "334ab20d-76be-4da8-80a4-66440c836bd4"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "Which project did I start first, the Ferrari model or the Porsche 991 Turbo S model?",
+      "retrieved_count": 4,
+      "rejected_count": 0,
+      "retrieved_ids": [
+        "bd6bf557-473a-4ae9-8f00-9b22bd2a4fd4"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "Who became a parent first, Tom or Alex?",
+      "retrieved_count": 8,
+      "rejected_count": 0,
+      "retrieved_ids": [
+        "5b4ab4a6-ff3b-495e-9cb0-4af87a43af79"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many items of clothing do I need to pick up or return from a store?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "5f4b8731-c52a-4caf-950c-58d23eaafc4d",
+        "918c3056-4a8a-4fd2-aa97-427dd1ebb1e2",
+        "784ae234-4d12-48eb-976d-30ec70f51a27",
+        "f1096be1-05bb-449c-92a1-6262c3fd816e",
+        "b495ec25-def3-423d-8af0-7d9626db7f05",
+        "0b835a5c-d675-453a-883f-a8dffe42b071"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many projects have I led or am currently leading?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "1f030b4f-fd96-4c4a-8e4b-20590a898f98",
+        "470bae80-6da4-486f-ab47-3f17c8b64f87",
+        "f5813f98-7d51-4a7e-a720-5d2c3b9f61a9",
+        "b68e9b60-c404-456e-82e2-ea13378d3f58",
+        "34dd462f-606c-4ef0-8732-ba422b852c63",
+        "2db153cf-703b-42b1-814c-e95ad270d5cf"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many model kits have I worked on or bought?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "80f8637b-aba7-41ff-8eea-b0ee37185ef9",
+        "8a0a77b2-5166-4063-af63-c5ad3292661d",
+        "b5d8888e-9d7b-4869-ae7a-d1f68ef5dc3f",
+        "9e79e586-a39b-4cf3-bb9a-3f90b6e148ce"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many days did I spend on camping trips in the United States this year?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "b41d9799-6803-4524-afe5-f32506847a2d",
+        "8464cbb5-df96-4f27-b755-8ea87edf78e4"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many weeks did it take me to watch all the Marvel Cinematic Universe movies and the main Star Wars films?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "5c22c617-819d-42f5-b094-7677b88d8a75",
+        "96a67c5b-024c-4f7f-818d-a11f0f2d0348"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many plants did I acquire in the last month?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "eb29aa4d-440a-4980-bccf-4767fc57dac2",
+        "cb146033-ee8b-4adc-a840-ce3c43a1cc07",
+        "b1a8e1a9-1608-4867-af30-ac192f3546d1",
+        "6df871cc-f680-4327-8e95-bfdb998279ca",
+        "f69eeec3-1a73-457f-b5b6-ff91ab805afb",
+        "868f1c52-4f4c-4244-84cd-5b74d0f18a60"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How much total money have I spent on bike-related expenses since the start of the year?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "452853f1-1827-4c13-aba6-734d7d5e9a9d",
+        "64a5e435-987b-4422-9a33-4a0dd8b00470",
+        "081f5a25-0e20-48b6-adc8-734f16763548",
+        "423eb9ce-6139-4912-80b9-f3b878f217b0",
+        "3a32ab7e-e132-40a4-bf15-61dbc19fe632",
+        "9e907ddd-7a84-4f17-8a68-0dbaf5af9171",
+        "46d8cc14-a7a8-4cba-a478-5551b29a5bd3"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many hours in total did I spend driving to my three road trip destinations combined?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "4d966f8e-6999-47b3-9fd1-da4926548b74",
+        "01068bdb-f691-448c-a338-ce71e97b4c0f",
+        "3c6285c6-3a5b-41c8-84c1-cb0c7d194678",
+        "257b25b0-039a-4880-a2e3-93c9603b3972",
+        "60bf16f6-15c6-4b4b-b494-f949bc0f7362",
+        "29762208-ad03-4957-9500-4fe31546c45b",
+        "7cd99481-71f3-4356-965d-bc55f1b991f3",
+        "93a34550-d76a-4b2b-bd40-1abe7942e657"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many different doctors did I visit?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "65bae504-ab98-4cbf-8da3-2280d7f88009",
+        "b5960804-9985-4b71-8d67-959810e0397c",
+        "36c4f694-21c2-4985-95d7-2daab209afef",
+        "bf53f88b-1766-47c3-bdab-c0a2776b00d7"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "What time did I go to bed on the day before I had a doctor's appointment?",
+      "retrieved_count": 5,
+      "rejected_count": 0,
+      "retrieved_ids": [
+        "4052b185-115f-47b4-9bfb-2cda2add5106"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many different types of citrus fruits have I used in my cocktail recipes?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "1b459f36-c73e-48e9-9710-4e15e5b96a23",
+        "75f24535-ee54-43c2-b842-ce0a91b802fe",
+        "658d6bd7-9858-4efd-8141-bfba7f370932",
+        "5f72d64b-06ad-4353-bb29-e93f10072091",
+        "57cf673a-4231-43cc-95c7-1d2150d23bf0"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many movie festivals that I attended?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "64d32cf0-da51-4e93-b3c3-cc9c2edbc95b",
+        "ac1a04f3-08f5-43f4-a50c-3ea9d4e52b49",
+        "e3b5a959-9da8-4924-9a98-dc95f8ab5479",
+        "a7be10aa-5ce5-40f8-99cd-5a15cbdd900c"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many days did I take social media breaks in total?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "90350215-d471-4908-b638-7fdc7b4237af",
+        "a4cc4523-fa00-41c8-8155-51294c838d08"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many tanks do I currently have, including the one I set up for my friend's kid?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "a4545bfa-47a0-43a2-a7ae-a2b6d174a503",
+        "1f1ef804-f7a4-4e5a-9855-d81b36b839c0",
+        "3ee796fa-bd2d-4a63-8f72-8e6d287bf742",
+        "44bdcf67-adce-41f0-8978-c033a64558b9",
+        "2342a385-aca7-44b3-9aa4-7269c3c98f4f"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "What is the total amount I spent on luxury items in the past few months?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "982bce28-f7dc-44bd-822d-fed650c957d8",
+        "e54d80ab-0c5c-4ff6-b644-eb316588b280",
+        "6c3e5d05-c465-4aa6-9d9b-05830f853e21",
+        "06dda847-d29b-4644-ac1f-a377fe2686ee",
+        "b6717f99-0ead-4984-9bb1-0b79c556844a"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many hours have I spent playing games in total?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "68e274ce-bf7e-4470-986b-d7bef53017df",
+        "1ee68b34-4b62-4299-8017-9d26790b71b2",
+        "da4d26fa-8884-42e8-932c-a9430323bb6d",
+        "7d0ab92d-3c44-4d71-b302-82623c4b5349"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many weddings have I attended in this year?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "51d4fa3d-ca27-40f7-845b-0ab59f313287",
+        "e9c59149-63e4-4f49-a419-76edd976ba6a",
+        "4524dde4-d75d-49bf-9eae-fd2e5ddc545a",
+        "d9aeceb8-fcc6-4d37-8a84-35d02ccb35e0",
+        "420634ba-b4c9-47c9-a5b2-15be522f8708",
+        "775600dd-cf78-4a2a-8c3f-ced60abd049f"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many babies were born to friends and family members in the last few months?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "73072622-195b-4269-91b4-7c9a86b65651",
+        "7352f1bc-fa27-4f01-b56d-67eb865e3fd6",
+        "b0155f5c-df2b-4f1a-8cf7-dab807109e10",
+        "a7097d81-e93b-432a-a125-f1621b83f8b0",
+        "1f746989-344e-4b42-a813-6f8f952393db",
+        "a0f7b3ca-e705-4cfb-8625-2025782d501a",
+        "07bc3739-dba2-4bde-8bde-b19a469ddb2e"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many pieces of furniture did I buy, assemble, sell, or fix in the past few months?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "1eae13f9-0449-46b4-95b9-a96edaaf91b3",
+        "08a064ac-a5be-4b79-8195-0c9904c41dcb",
+        "2bc3f535-21f9-4a65-b4bf-38fca0759ed4",
+        "cdf75b29-f0b1-4fb6-89ef-68bf4bf27063",
+        "c5ec4c1e-2bce-42d1-9a16-1fb23cc54e11",
+        "09feb32a-c329-418c-ad6c-a78905fb70cf"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many times did I bake something in the past two weeks?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "50e21dac-e4dd-456d-a073-3f7c8102c699",
+        "01df0231-f973-46c2-83bd-5e9007a5d427",
+        "0302b102-de61-40e4-b1b4-140228531b62",
+        "e5d21072-0617-407b-b4f8-17058919f162",
+        "6c60e1ff-9df3-4e7a-baa9-30c5008e87f0",
+        "76532f46-682a-4c52-a3e5-4dde71760d36"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many different museums or galleries did I visit in the month of February?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "2501381d-503b-4da2-9bdb-912ef136577e",
+        "a265e390-61e0-44f6-84a8-332b0c72396f",
+        "5b95bb92-ba4a-4b7a-92d1-10e7d7596412",
+        "eb785a30-23ec-4d2e-9020-b77db9f0078c",
+        "8143760e-4ad9-45fe-9759-cd5a53699fa9"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many different cuisines have I learned to cook or tried out in the past few months?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "361a0254-d4d8-4d7e-b241-eb110df2aedd",
+        "9a4fb836-d4d3-427e-9778-d9548ce4251f",
+        "77685130-5196-40ad-bc41-ebe71d2ffeb5",
+        "71ef4c74-aed3-4cdf-a0ae-b5bcabac573f"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many properties did I view before making an offer on the townhouse in the Brookside neighborhood?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "c5b0fc66-ef3c-4826-b193-83048490f18b",
+        "b1814fb1-bea0-4f07-b501-682635030b62",
+        "76ee12ee-1ec1-4aa8-89fe-088603d43369",
+        "c7057222-39d4-4ff3-878a-c11b1b59323b",
+        "9f7e7728-e78f-43bc-8a28-bf42df2556f1",
+        "dd00997a-031c-447e-a9fc-b6dea9b141d6",
+        "d4bcf4c4-c329-43b3-b2eb-3f0fb5ca0d0c"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many different types of food delivery services have I used recently?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "4ca9d4a1-8907-48c1-bff4-290ea2f29d05",
+        "c1c62544-6a53-477a-8ad8-2d4ef810759f",
+        "788dcba1-13a6-4294-9aa1-bb75ab1720d3",
+        "4fe8cb9d-a3cb-4a21-8b06-7a5bfc83ffcd"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many hours of jogging and yoga did I do last week?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "52df0852-1444-459f-8037-76a4036ad5d3",
+        "433afe50-f4e5-4053-904d-e2ce392f6c2d",
+        "bf696ef0-c3fd-4d47-b156-5d97ea9544be",
+        "dba51b44-5f90-40bb-87fe-be7ac5a605cb"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "Which social media platform did I gain the most followers on over the past month?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "c52f4c17-aa80-474d-b9a8-260bf04f3e3b",
+        "6afcf9b3-7cd4-4497-af55-b84c47e73fa8",
+        "83914d09-8f7d-410d-8a42-c8e309a33775",
+        "8dcade90-bde2-471a-a327-2e29084ded06",
+        "6edb8c5f-63fc-4758-90ec-3ee4ebd4bdee"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "Which grocery store did I spend the most money at in the past month?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "1302b270-903d-4713-9ce1-b6fba207f228",
+        "01164e94-0248-43fc-8a25-3fab2d3595bf",
+        "e2efed9f-0fd8-4e95-a46b-1081acd5770a",
+        "fdda32d5-6391-4ee1-afc2-ae9de785acbd",
+        "64dfec97-0625-4eb7-b9a4-16c34ff3d8e3",
+        "9f7bd87f-5c63-467a-be97-182b870917d8"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How much more did I spend on accommodations per night in Hawaii compared to Tokyo?",
+      "retrieved_count": 2,
+      "rejected_count": 0,
+      "retrieved_ids": [],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many different art-related events did I attend in the past month?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "e157c162-121f-42a0-b835-15154257dbcb",
+        "9a086b02-09c9-487a-a077-91e66782ae18",
+        "8a8b0927-7db3-4592-872e-eca6ce65393f",
+        "d9ffe1f4-187d-4361-9b0e-e8ec6ab1c9cc",
+        "bd847254-0aa4-4959-b21d-92d9fb3aa7d6",
+        "ef92b8a4-63cd-44b9-92b8-e2c2b54d1129",
+        "7ebe67b3-a7d9-4c09-b48d-47cb88de084a"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "What is the average age of me, my parents, and my grandparents?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "28b679f8-14c5-46d9-bd54-48eda11af729",
+        "8a305e84-b066-4a70-b0cf-53a283099da2",
+        "5ef8c4c5-7010-43c3-baea-a50fd4556fa8",
+        "f8c2a689-c2be-4849-a529-6389ae43a16a",
+        "2a1d60bf-f516-4a22-815c-4ce4ce0d6ae0"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many doctor's appointments did I go to in March?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "7f7e9230-409c-4ef1-9349-e0635a54fdab",
+        "f14475d8-5fec-4520-b1e5-c35f3381ca36",
+        "4e8f6acf-013f-47bb-8b90-a6410cb42b47",
+        "422cb1db-1751-400f-8232-8dfdc3f4de6c",
+        "c8c5ef22-6632-46ed-ab48-26f5efaa1709",
+        "e8e592fe-27a5-4828-8766-15b17d5d58f0"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many days did it take for me to receive the new remote shutter release after I ordered it?",
+      "retrieved_count": 5,
+      "rejected_count": 0,
+      "retrieved_ids": [],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many health-related devices do I use in a day?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "b67153ed-3b10-4262-a63c-e38d3ea04c07",
+        "cc30335d-53e3-4ec7-86d1-c81539a0d3c8",
+        "b433a355-978f-49df-a92a-1c91ce44526e",
+        "9ce60e24-86dc-400f-ba4f-a95a9c4dcaf6",
+        "f34c6b81-e521-4a46-9d12-9f44f8360430",
+        "e2345eaf-be94-43c0-9a0a-a646444d3069",
+        "11bdd4a7-9a9f-4f20-8653-c2856b1b063d"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many fish are there in total in both of my aquariums?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "5ab7f06a-1dc1-4bcb-8b30-ccfb75fa06f1",
+        "f4b88f0a-d9de-4115-97f0-0ebfa55cb145",
+        "415dc993-8d63-4122-8708-d13b56976666"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many fitness classes do I attend in a typical week?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "7015c920-8239-46df-842a-1fe02c559a65",
+        "8660f713-3744-4ec8-96a0-e7a100046854",
+        "94dbfd83-328f-47be-83c6-691e244d2958",
+        "74c2d637-6e50-4df4-a9a0-05bf8808ca0d",
+        "e7b07667-68dc-4b2b-b81e-bdf5c93c16fe",
+        "6770ca91-ed97-414c-87e1-d53bf2f41faf"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many days did it take for my laptop backpack to arrive after I bought it?",
+      "retrieved_count": 5,
+      "rejected_count": 0,
+      "retrieved_ids": [
+        "d3019068-efaa-4148-ba79-7fef46d0f7d8"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many pieces of jewelry did I acquire in the last two months?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "b56e6f32-14ed-4d43-831b-4399357b45fc",
+        "d73c58ce-dbe2-473b-b3a7-4bbf3dd3ee83",
+        "8f126397-a213-4885-b4ba-72ae0aa53f34",
+        "f30f3fd5-e217-49f6-a553-070b7edc3e2b"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How much money did I raise in total through all the charity events I participated in?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "2bc4d082-171c-4267-a778-398a787f2cd1",
+        "2f49236c-7368-492e-bc32-7e5d2c91ec19",
+        "136ae51b-2f12-48e1-8f76-58fa651d51b3",
+        "184409e7-27d9-4820-ad1f-d5df27a5baee"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many projects have I been working on simultaneously, excluding my thesis?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "f5c18abf-17f7-491b-8a9c-ca9124eadd0a",
+        "daa9934d-6c1c-4ebb-92d0-e6d6fe83679d"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    },
+    {
+      "query": "How many musical instruments do I currently own?",
+      "retrieved_count": 10,
+      "rejected_count": 10,
+      "retrieved_ids": [
+        "8c4dae22-3474-4806-9c97-67eec06cc1ae",
+        "957bccfb-987f-4cb9-9c13-4fb4f2da6649",
+        "b7896473-ff23-4783-86fe-55ad57d230ba",
+        "eac67bac-23ca-453f-9961-c3d2fb32b6c7",
+        "8c04a7af-6869-4a94-b549-c7421e32615e",
+        "d3c0d59c-bec0-4a5d-ad1a-85a2f68fb730",
+        "38f37682-6ece-4121-bcff-676f39b8d59b"
+      ],
+      "rejection_reasons": [],
+      "pollution_score": 0.0
+    }
+  ],
+  "stage_timings": {
+    "ingest.entity_extract_link": {
+      "total_ms": 8520765.0,
+      "calls": 3062,
+      "avg_ms": 2782.7,
+      "pct_of_total": 33.6
+    },
+    "ingest.classify": {
+      "total_ms": 8083399.8,
+      "calls": 3062,
+      "avg_ms": 2639.9,
+      "pct_of_total": 31.8
+    },
+    "ingest.fact_extract": {
+      "total_ms": 6449510.6,
+      "calls": 3062,
+      "avg_ms": 2106.3,
+      "pct_of_total": 25.4
+    },
+    "chat.llm_generate": {
+      "total_ms": 719035.2,
+      "calls": 100,
+      "avg_ms": 7190.4,
+      "pct_of_total": 2.8
+    },
+    "ingest.store_save": {
+      "total_ms": 438260.7,
+      "calls": 3057,
+      "avg_ms": 143.4,
+      "pct_of_total": 1.7
+    },
+    "chat.prepare_context_total": {
+      "total_ms": 429960.4,
+      "calls": 100,
+      "avg_ms": 4299.6,
+      "pct_of_total": 1.7
+    },
+    "retrieval.smart_page_in": {
+      "total_ms": 272324.0,
+      "calls": 100,
+      "avg_ms": 2723.2,
+      "pct_of_total": 1.1
+    },
+    "retrieval.intent_analysis": {
+      "total_ms": 211129.5,
+      "calls": 100,
+      "avg_ms": 2111.3,
+      "pct_of_total": 0.8
+    },
+    "retrieval.l2_cap_enforce": {
+      "total_ms": 157586.5,
+      "calls": 100,
+      "avg_ms": 1575.9,
+      "pct_of_total": 0.6
+    },
+    "ingest.save_entities": {
+      "total_ms": 40013.2,
+      "calls": 3062,
+      "avg_ms": 13.1,
+      "pct_of_total": 0.2
+    },
+    "retrieval.hydrate_promote": {
+      "total_ms": 37921.1,
+      "calls": 100,
+      "avg_ms": 379.2,
+      "pct_of_total": 0.1
+    },
+    "retrieval.route_factual": {
+      "total_ms": 11630.8,
+      "calls": 42,
+      "avg_ms": 276.9,
+      "pct_of_total": 0.0
+    },
+    "retrieval.route_temporal": {
+      "total_ms": 5837.5,
+      "calls": 22,
+      "avg_ms": 265.3,
+      "pct_of_total": 0.0
+    },
+    "retrieval.rank_engine": {
+      "total_ms": 2474.3,
+      "calls": 100,
+      "avg_ms": 24.7,
+      "pct_of_total": 0.0
+    },
+    "ingest.save_facts": {
+      "total_ms": 2391.6,
+      "calls": 3062,
+      "avg_ms": 0.8,
+      "pct_of_total": 0.0
+    },
+    "retrieval.route_event": {
+      "total_ms": 1666.7,
+      "calls": 7,
+      "avg_ms": 238.1,
+      "pct_of_total": 0.0
+    },
+    "retrieval.route_comparison": {
+      "total_ms": 832.4,
+      "calls": 26,
+      "avg_ms": 32.0,
+      "pct_of_total": 0.0
+    },
+    "retrieval.route_relationship": {
+      "total_ms": 829.8,
+      "calls": 3,
+      "avg_ms": 276.6,
+      "pct_of_total": 0.0
+    },
+    "ingest.timeline_store": {
+      "total_ms": 613.2,
+      "calls": 3062,
+      "avg_ms": 0.2,
+      "pct_of_total": 0.0
+    },
+    "ingest.meta_upsert": {
+      "total_ms": 46.3,
+      "calls": 3062,
+      "avg_ms": 0.0,
+      "pct_of_total": 0.0
+    },
+    "retrieval.eviction_sweep": {
+      "total_ms": 27.3,
+      "calls": 100,
+      "avg_ms": 0.3,
+      "pct_of_total": 0.0
+    },
+    "retrieval.tier_counts": {
+      "total_ms": 16.0,
+      "calls": 100,
+      "avg_ms": 0.2,
+      "pct_of_total": 0.0
+    },
+    "chat.build_messages": {
+      "total_ms": 4.0,
+      "calls": 100,
+      "avg_ms": 0.0,
+      "pct_of_total": 0.0
+    },
+    "retrieval.assemble_context": {
+      "total_ms": 2.5,
+      "calls": 100,
+      "avg_ms": 0.0,
+      "pct_of_total": 0.0
+    }
+  }
+}

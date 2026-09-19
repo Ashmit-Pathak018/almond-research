@@ -43,6 +43,7 @@ from typing import Optional, Protocol
 from core.memory_pipeline_v2.query_analyzer import QueryIntent, IntentType
 from core.memory_pipeline_v2.timeline_index import TimelineIndex, TimelineEvent, OrderingResult
 from core.memory_pipeline_v2.entity_extractor import EntityRegistry, Entity
+from core.memory_pipeline_v2.temporal_reasoner import TemporalReasoner, ReasoningContext
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +60,7 @@ class RetrievedMemory:
     score:        float          # preliminary relevance score before ranking_engine
     source:       str            # "timeline" | "semantic_fallback"
     timeline_events: list[TimelineEvent] = field(default_factory=list)
-    ordering_result: Optional[OrderingResult] = None
+    reasoning_context: Optional[ReasoningContext] = None
 
 
 @dataclass
@@ -68,7 +69,7 @@ class TemporalRetrievalResult:
     Complete result from the temporal retriever, handed to the ranking engine.
     """
     memories:          list[RetrievedMemory]
-    ordering_result:   Optional[OrderingResult]   # set for ordering queries
+    reasoning_context: Optional[ReasoningContext]   # set for reasoning queries
     used_fallback:     bool                        # True if semantic fallback ran
     query_intent:      QueryIntent
     entity_ids_used:   list[str]
@@ -76,7 +77,7 @@ class TemporalRetrievalResult:
     @property
     def found_answer(self) -> bool:
         return bool(self.memories) or (
-            self.ordering_result is not None and not self.ordering_result.inconclusive
+            self.reasoning_context is not None
         )
 
 
@@ -146,6 +147,7 @@ class TemporalRetriever:
         self._store     = memory_store
         self._fallback_k = fallback_top_k
         self._min_conf  = min_confidence
+        self._reasoner  = TemporalReasoner(timeline_index, entity_registry)
 
     # ------------------------------------------------------------------
     # Public API
@@ -159,17 +161,37 @@ class TemporalRetriever:
         # Resolve entity names from the query to registry IDs
         entity_ids = self._resolve_entities(intent)
 
+        # -- PROBE: TemporalRetriever entry ----------------------------------
+        print(f"[PROBE][TemporalRetriever] intent={intent.intent_type.value} "
+              f"entities_in_registry={len(self._registry.all_entities())} "
+              f"resolved_entities={len(entity_ids)} ids={entity_ids[:4]}")
+        print(f"[PROBE][TemporalRetriever] intent.entities_mentioned={intent.entities_mentioned} "
+              f"intent.comparison_targets={intent.comparison_targets}")
+        # -------------------------------------------------------------------
+
         # --- Ordering query: "which came first?" ---
         if self._is_ordering_query(intent) and len(entity_ids) >= 2:
-            return self._retrieve_ordering(intent, entity_ids)
+            print(f"[PROBE][TemporalRetriever] routing -> _retrieve_ordering")
+            result = self._retrieve_ordering(intent, entity_ids)
+            print(f"[PROBE][TemporalRetriever] ordering returned {len(result.memories)} memories")
+            # Only return immediately if we actually found something via ordering
+            # (or if we intentionally used fallback in ordering, but if empty, we might
+            # do better trying normal entity timeline).
+            if result.memories and not result.used_fallback:
+                return result
 
         # --- Timeline query: "when did X happen?", "what happened between..." ---
         if entity_ids:
-            return self._retrieve_for_entities(intent, entity_ids)
+            print(f"[PROBE][TemporalRetriever] routing -> _retrieve_for_entities")
+            result = self._retrieve_for_entities(intent, entity_ids)
+            print(f"[PROBE][TemporalRetriever] entity-retrieval returned {len(result.memories)} memories (fallback={result.used_fallback})")
+            return result
 
         # --- No entities found: fall back to semantic search ---
-        logger.debug("temporal_retriever: no entities resolved, using semantic fallback")
-        return self._semantic_fallback(intent, entity_ids=[])
+        print(f"[PROBE][TemporalRetriever] routing -> _semantic_fallback (no entities resolved)")
+        result = self._semantic_fallback(intent, entity_ids=[])
+        print(f"[PROBE][TemporalRetriever] semantic_fallback returned {len(result.memories)} memories")
+        return result
 
     # ------------------------------------------------------------------
     # Entity resolution
@@ -229,11 +251,12 @@ class TemporalRetriever:
         entity_a = entity_ids[0]
         entity_b = entity_ids[1]
 
-        ordering = self._timeline.compare_order(entity_a, entity_b, event_type=event_type)
+        reasoning_ctx = self._reasoner.compute_ordering(entity_a, entity_b, event_type=event_type)
+        ordering = reasoning_ctx.ordering if reasoning_ctx else self._timeline.compare_order(entity_a, entity_b, event_type=event_type)
 
         memories: list[RetrievedMemory] = []
 
-        if not ordering.inconclusive:
+        if reasoning_ctx and ordering:
             # Fetch the memory text for both events to give context
             for event in [ordering.event_a, ordering.event_b]:
                 if event:
@@ -248,7 +271,7 @@ class TemporalRetriever:
                             score=0.95 if is_first else 0.80,
                             source="timeline",
                             timeline_events=[event],
-                            ordering_result=ordering,
+                            reasoning_context=reasoning_ctx,
                         ))
         else:
             # Inconclusive — still fetch available memories for context
@@ -271,7 +294,7 @@ class TemporalRetriever:
 
         return TemporalRetrievalResult(
             memories=memories,
-            ordering_result=ordering,
+            reasoning_context=reasoning_ctx,
             used_fallback=False,
             query_intent=intent,
             entity_ids_used=entity_ids,
@@ -330,7 +353,7 @@ class TemporalRetriever:
 
         return TemporalRetrievalResult(
             memories=memories,
-            ordering_result=None,
+            reasoning_context=None,
             used_fallback=False,
             query_intent=intent,
             entity_ids_used=entity_ids,
@@ -351,8 +374,11 @@ class TemporalRetriever:
         results = self._store.semantic_search(
             query=intent.raw_query,
             top_k=self._fallback_k,
-            filters={"memory_type": ["EVENT", "USER_FACT"]},
         )
+
+        # ── PROBE: semantic_fallback raw results ─────────────────────────────
+        print(f"[PROBE][_semantic_fallback] store.semantic_search returned {len(results)} raw results")
+        # ─────────────────────────────────────────────────────────────────────
 
         memories = [
             RetrievedMemory(memory_id=mid, text=text, score=score, source="semantic_fallback")
@@ -361,7 +387,7 @@ class TemporalRetriever:
 
         return TemporalRetrievalResult(
             memories=memories,
-            ordering_result=None,
+            reasoning_context=None,
             used_fallback=True,
             query_intent=intent,
             entity_ids_used=entity_ids,

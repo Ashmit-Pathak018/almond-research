@@ -18,6 +18,7 @@ from __future__ import annotations
 import json
 import logging
 import sqlite3
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, List, Dict
@@ -32,6 +33,11 @@ from core.memory_pipeline_v2.fact_extractor import (
 )
 from core.memory_pipeline_v2.entity_extractor import Entity, EntityType, EntityRegistry
 
+from core.storage.migrations.migration_manager import apply_migrations
+import core.storage.migrations.migration_001_v2_to_v3
+import core.storage.migrations.migration_002_knowledge_layer
+import core.storage.migrations.migration_003_fts5
+
 logger = logging.getLogger(__name__)
 
 
@@ -43,6 +49,7 @@ class MemoryStore:
         # 1. SQLite — source of truth
         self._conn = sqlite3.connect(self.db_path, check_same_thread=False)
         self._conn.row_factory = sqlite3.Row
+        self._conn.execute("PRAGMA foreign_keys = ON;")
         self._init_sqlite()
 
         # 2. ChromaDB — semantic index
@@ -64,101 +71,8 @@ class MemoryStore:
     # -----------------------------------------------------------------------
 
     def _init_sqlite(self) -> None:
-        """Create all tables if they don't exist."""
-        with self._conn:
-            # ── Existing table (summary column added) ─────────────────────
-            self._conn.execute("""
-                CREATE TABLE IF NOT EXISTS memory_blocks (
-                    id               TEXT PRIMARY KEY,
-                    content          TEXT NOT NULL,
-                    summary          TEXT,
-                    tag              TEXT NOT NULL,
-                    tier             TEXT NOT NULL,
-                    importance_score REAL NOT NULL,
-                    keywords         TEXT NOT NULL,
-                    source           TEXT NOT NULL,
-                    session_id       TEXT,
-                    created_at       REAL NOT NULL,
-                    last_accessed_at REAL NOT NULL,
-                    access_count     INTEGER NOT NULL
-                )
-            """)
-            self._conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_tier ON memory_blocks(tier)"
-            )
-
-            # ── Migrate: add summary column to existing databases ──────────
-            # Safe no-op if the column already exists.
-            try:
-                self._conn.execute(
-                    "ALTER TABLE memory_blocks ADD COLUMN summary TEXT"
-                )
-            except sqlite3.OperationalError:
-                pass   # column already exists — fine
-
-            # ── Phase 2: structured facts ──────────────────────────────────
-            self._conn.execute("""
-                CREATE TABLE IF NOT EXISTS structured_facts (
-                    id                  TEXT PRIMARY KEY,
-                    memory_id           TEXT NOT NULL,
-                    subject             TEXT NOT NULL,
-                    predicate           TEXT NOT NULL,
-                    object              TEXT NOT NULL,
-                    fact_type           TEXT NOT NULL,
-                    confidence          REAL NOT NULL,
-                    date_raw            TEXT DEFAULT '',
-                    earliest            TEXT,
-                    latest              TEXT,
-                    temporal_confidence REAL DEFAULT 0.0,
-                    granularity         TEXT DEFAULT 'unknown',
-                    extraction_method   TEXT DEFAULT 'heuristic',
-                    needs_review        INTEGER DEFAULT 0,
-                    has_conflict        INTEGER DEFAULT 0
-                )
-            """)
-            self._conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_facts_memory "
-                "ON structured_facts(memory_id)"
-            )
-            self._conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_facts_predicate "
-                "ON structured_facts(predicate)"
-            )
-            self._conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_facts_object "
-                "ON structured_facts(object)"
-            )
-
-            # ── Phase 2: entity registry ───────────────────────────────────
-            self._conn.execute("""
-                CREATE TABLE IF NOT EXISTS entities (
-                    id              TEXT PRIMARY KEY,
-                    name            TEXT NOT NULL,
-                    type            TEXT NOT NULL,
-                    aliases         TEXT DEFAULT '[]',
-                    first_seen      TEXT,
-                    last_seen       TEXT,
-                    memory_ids      TEXT DEFAULT '[]',
-                    fact_ids        TEXT DEFAULT '[]',
-                    reference_count INTEGER DEFAULT 0,
-                    needs_review    INTEGER DEFAULT 0
-                )
-            """)
-            self._conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_entities_name ON entities(name)"
-            )
-            self._conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_entities_type ON entities(type)"
-            )
-
-            # ── Phase 2: entity-memory join ────────────────────────────────
-            self._conn.execute("""
-                CREATE TABLE IF NOT EXISTS entity_memory_map (
-                    entity_id  TEXT NOT NULL,
-                    memory_id  TEXT NOT NULL,
-                    PRIMARY KEY (entity_id, memory_id)
-                )
-            """)
+        """Apply versioned migrations to ensure SQLite schema is at latest V3 standard."""
+        apply_migrations(self._conn)
 
     # -----------------------------------------------------------------------
     # Core CRUD — memory blocks (unchanged except summary column)
@@ -169,29 +83,41 @@ class MemoryStore:
         Upserts the block to SQLite and ChromaDB.
         Enriches Chroma metadata with dynamic attributes for the reranker.
         """
+        ns = getattr(block, "namespace_id", "default")
         with self._conn:
+            self._conn.execute(
+                "INSERT OR IGNORE INTO namespaces (namespace_id, name, created_at) VALUES (?, ?, ?)",
+                (ns, ns, time.time())
+            )
             self._conn.execute("""
                 INSERT INTO memory_blocks (
-                    id, content, summary, tag, tier, importance_score,
-                    keywords, source, session_id,
-                    created_at, last_accessed_at, access_count
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    id, namespace_id, content, summary, tag, tier, state, importance_score,
+                    keywords, source, session_id, event_time,
+                    created_at, updated_at, last_accessed_at, access_count
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(id) DO UPDATE SET
                     summary          = excluded.summary,
                     tier             = excluded.tier,
+                    state            = excluded.state,
+                    event_time       = excluded.event_time,
+                    updated_at       = excluded.updated_at,
                     last_accessed_at = excluded.last_accessed_at,
                     access_count     = excluded.access_count
             """, (
                 block.id,
+                getattr(block, "namespace_id", "default"),
                 block.content,
                 block.summary,
                 block.tag.value,
                 block.tier.value,
+                getattr(block, "state", "ACTIVE"),
                 block.importance_score,
                 json.dumps(block.keywords),
-                block.source,
+                block.source or "user",
                 block.session_id,
+                getattr(block, "event_time", None),
                 block.created_at,
+                getattr(block, "updated_at", block.created_at),
                 block.last_accessed_at,
                 block.access_count,
             ))
@@ -205,6 +131,7 @@ class MemoryStore:
                 metadatas=[{
                     "tag":             block.tag.value,
                     "tier":            block.tier.value,
+                    "namespace_id":    getattr(block, "namespace_id", "default"),
                     "p_eff":           float(block.p_eff),
                     "last_accessed_at":float(block.last_accessed_at),
                     "keywords":        json.dumps(block.keywords),
@@ -217,15 +144,69 @@ class MemoryStore:
                 pass
 
     def delete(self, block_id: str) -> None:
-        """Hard delete from both stores."""
+        """Cascading delete from SQLite relational truth and derived Chroma index."""
+        now = time.time()
         with self._conn:
-            self._conn.execute(
-                "DELETE FROM memory_blocks WHERE id = ?", (block_id,)
-            )
+            # 1. Clean relational links
+            self._conn.execute("DELETE FROM memory_entities WHERE memory_id = ?", (block_id,))
+            self._conn.execute("DELETE FROM memory_facts WHERE memory_id = ?", (block_id,))
+            self._conn.execute("DELETE FROM memory_events WHERE memory_id = ?", (block_id,))
+            self._conn.execute("DELETE FROM structured_facts WHERE memory_id = ?", (block_id,))
+            self._conn.execute("DELETE FROM entity_memory_map WHERE memory_id = ?", (block_id,))
+
+            # 2. Delete primary record
+            self._conn.execute("DELETE FROM memory_blocks WHERE id = ?", (block_id,))
+
+            # 3. Log audit event
+            audit_id = f"audit_{now}_{block_id[:8]}"
+            self._conn.execute("""
+                INSERT INTO audit_events (audit_id, namespace_id, event_type, target_id, details_json, created_at)
+                VALUES (?, 'default', 'CASCADE_DELETE', ?, '{}', ?)
+            """, (audit_id, block_id, now))
+
+        # 4. Clean derived vector store
         try:
             self._collection.delete(ids=[block_id])
         except Exception:
             pass
+
+    def rebuild_indexes(self) -> int:
+        """
+        Rebuild derived Chroma vector index from SQLite relational ground truth.
+        Guarantees that SQLite is the durable source of truth.
+        """
+        try:
+            self.chroma_client.delete_collection("almond_memory_vault")
+        except Exception:
+            pass
+        self._collection = self.chroma_client.get_or_create_collection(
+            name="almond_memory_vault",
+            metadata={"hnsw:space": "cosine"},
+        )
+        blocks = self.get_all()
+        indexed_count = 0
+        batch_ids, batch_docs, batch_metas = [], [], []
+        for b in blocks:
+            if b.tier in (MemoryTier.L2_ACTIVE_RAM, MemoryTier.L3_VIRTUAL_SWAP):
+                batch_ids.append(b.id)
+                batch_docs.append(b.content)
+                batch_metas.append({
+                    "tag": b.tag.value,
+                    "tier": b.tier.value,
+                    "namespace_id": getattr(b, "namespace_id", "default"),
+                    "p_eff": float(b.p_eff),
+                    "last_accessed_at": float(b.last_accessed_at),
+                    "keywords": json.dumps(b.keywords),
+                })
+                indexed_count += 1
+                if len(batch_ids) >= 50:
+                    self._collection.upsert(ids=batch_ids, documents=batch_docs, metadatas=batch_metas)
+                    batch_ids, batch_docs, batch_metas = [], [], []
+        if batch_ids:
+            self._collection.upsert(ids=batch_ids, documents=batch_docs, metadatas=batch_metas)
+
+        logger.info("[STORE] rebuild_indexes: %d blocks indexed into Chroma.", indexed_count)
+        return indexed_count
 
     # -----------------------------------------------------------------------
     # Retrieval — memory blocks (unchanged)
@@ -438,6 +419,7 @@ class MemoryStore:
     # -----------------------------------------------------------------------
 
     def _row_to_block(self, row: sqlite3.Row) -> MemoryBlock:
+        keys = row.keys()
         block = MemoryBlock(
             content=row["content"],
             tag=MemoryTag(row["tag"]),
@@ -446,10 +428,14 @@ class MemoryStore:
             source=row["source"],
             session_id=row["session_id"],
             tier=MemoryTier(row["tier"]),
-            summary=row["summary"] if "summary" in row.keys() else None,
+            summary=row["summary"] if "summary" in keys else None,
+            namespace_id=row["namespace_id"] if "namespace_id" in keys else "default",
+            event_time=row["event_time"] if "event_time" in keys else None,
+            state=row["state"] if "state" in keys else "ACTIVE",
         )
         object.__setattr__(block, "id",               row["id"])
         object.__setattr__(block, "created_at",       row["created_at"])
+        object.__setattr__(block, "updated_at",       row["updated_at"] if "updated_at" in keys and row["updated_at"] is not None else row["created_at"])
         object.__setattr__(block, "last_accessed_at", row["last_accessed_at"])
         object.__setattr__(block, "access_count",     row["access_count"])
         return block

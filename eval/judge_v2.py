@@ -152,7 +152,10 @@ def _check_abstention_gate(model_response: str) -> Optional[JudgeResult]:
 # LAYER 2 - NUMERIC GATE (deterministic)
 # ============================================================================
 
-_NUMBER_RE = re.compile(r'\b\d+(?:\.\d+)?\b')
+# Fix 2b: Match comma-grouped numbers as single tokens FIRST,
+# then fall back to bare digit sequences. Prevents $5,850 being
+# parsed as [5.0, 850.0] instead of [5850.0].
+_NUMBER_RE = re.compile(r'\$?\d{1,3}(?:,\d{3})+(?:\.\d+)?|\$?\d+(?:\.\d+)?')
 _WORD_TO_NUM = {
     "zero":0,"one":1,"two":2,"three":3,"four":4,"five":5,"six":6,"seven":7,
     "eight":8,"nine":9,"ten":10,"eleven":11,"twelve":12,"thirteen":13,
@@ -164,14 +167,20 @@ _WEEK_RE  = re.compile(r'(\d+(?:\.\d+)?)\s*(?:week|weeks)\b', re.IGNORECASE)
 _MONTH_DAYS_RE = re.compile(r'(\d+(?:\.\d+)?)\s*(?:month|months)\b', re.IGNORECASE)
 
 def _extract_numbers(text: str) -> set[float]:
-    found = {float(n) for n in _NUMBER_RE.findall(text)}
+    text = str(text)  # Fix 1: defensive coercion for int/float answers
+    found = set()
+    for m in _NUMBER_RE.finditer(text):
+        cleaned = m.group().replace('$', '').replace(',', '')
+        try:
+            found.add(float(cleaned))
+        except ValueError:
+            continue
     lower = text.lower()
     for word, val in _WORD_TO_NUM.items():
         if re.search(rf'\b{word}\b', lower):
             found.add(float(val))
     # Convert "N weeks" → N*7 days so the numeric gate can match day-count
     # expected answers when the model responds in week units.
-    # e.g. Q9: model says "2-3 weeks", expected is "21 days" → 3*7=21 -> PASS
     for m in _WEEK_RE.finditer(text):
         found.add(float(m.group(1)) * 7)
     return found
@@ -183,6 +192,7 @@ def _looks_purely_numeric(expected: str) -> bool:
     (e.g. "7 days. 8 days (including the last day) is also acceptable.",
     "4", "21 days.") rather than a named-entity question ("Samsung Galaxy S22").
     """
+    expected = str(expected)  # Fix 1: defensive coercion
     stripped = expected.strip()
     if not _NUMBER_RE.search(stripped):
         return False
@@ -389,6 +399,16 @@ _UNIT_WORDS = frozenset({
     "the", "and", "was", "were", "been", "have", "that", "this",
 })
 
+# Fix 3b: Generic topic-carrier words that should not singlehandedly
+# trigger a word-prefix match between extracted claim and expected answer.
+# "trip" matching "trip" caused case 32 (Thailand vs Europe) to false-PASS.
+_GENERIC_STOPWORDS = frozenset({
+    "trip", "event", "time", "week", "month", "year", "day", "days",
+    "thing", "person", "place", "activity", "item", "gift", "meeting",
+    "about", "with", "from", "what", "when", "where", "which", "more",
+    "some", "many", "much", "very", "just", "also", "most", "other",
+})
+
 
 def _normalize_for_substring_check(s: str) -> str:
     """
@@ -400,6 +420,7 @@ def _normalize_for_substring_check(s: str) -> str:
     same thing. A normalized substring check resolves this deterministically
     before ever invoking the LLM.
     """
+    s = str(s)  # Fix 1: defensive coercion
     s = s.strip().strip("'\".,!? ")
     s = _TRAILING_PUNCT_RE.sub("", s.lower())
     s = re.sub(r"\s+", " ", s).strip()
@@ -408,24 +429,33 @@ def _normalize_for_substring_check(s: str) -> str:
 
 def _check_word_prefix_match(ne: str, nx: str) -> bool:
     """
-    Check if any content word (non-unit, length >= 4) in the expected answer
-    is a prefix of any content word in the extracted claim, or vice versa.
+    Check if a MAJORITY of content words (non-unit, non-generic, length >= 4)
+    in the shorter word list prefix-match words in the longer list.
 
-    This catches plural/singular mismatches like extracted 'tomato seeds were
-    started first' vs expected 'Tomatoes' — 'tomatoes' prefix-matches 'tomato'.
-    Unit words (months, days, years, the, and…) are excluded to prevent
-    spurious matches like '2 months' matching 'Five months ago' on the
-    shared word 'months'.
+    Fix 3b: Requires >=60% majority overlap instead of any single shared word.
+    Also excludes generic topic-carrier words (trip, event, time...) that
+    caused false positives like case 32 (Thailand vs Europe sharing only "trip").
+
+    Prefix match requires the shorter word to be >=80% of the longer word's
+    length, preventing "smart" from matching "smartphone".
     """
-    ew_list = [w for w in nx.split() if len(w) >= 4 and w not in _UNIT_WORDS]
-    xw_list = [w for w in ne.split() if len(w) >= 4 and w not in _UNIT_WORDS]
+    stop = _UNIT_WORDS | _GENERIC_STOPWORDS
+    ew_list = [w for w in nx.split() if len(w) >= 4 and w not in stop]
+    xw_list = [w for w in ne.split() if len(w) >= 4 and w not in stop]
     if not ew_list or not xw_list:
         return False
+
+    matched = 0
     for ew in ew_list:
         for xw in xw_list:
-            if ew.startswith(xw) or xw.startswith(ew):
-                return True
-    return False
+            shorter, longer = (ew, xw) if len(ew) <= len(xw) else (xw, ew)
+            if longer.startswith(shorter) and len(shorter) / len(longer) >= 0.75:
+                matched += 1
+                break
+
+    # Require a majority of the SHORTER word list's significant terms to match
+    threshold_list = ew_list if len(ew_list) <= len(xw_list) else xw_list
+    return matched / len(threshold_list) >= 0.6
 
 
 def _check_substring_match(expected_answer: str, extracted_claim: str) -> Optional[bool]:
@@ -434,15 +464,14 @@ def _check_substring_match(expected_answer: str, extracted_claim: str) -> Option
     of the normalized expected answer (or vice versa), the LLM comparison step
     is skipped entirely - they refer to the same thing.
 
+    Fix 3: Added minimum-length guard — the shorter string must be >=4 chars
+    AND >=50% of the longer string's length to prevent fragment matches
+    (e.g. "1" inside "10", "no" inside "innovative option").
+
     This intentionally does NOT fire as a definitive FAIL when there's no
     overlap; absence of substring overlap is common even for genuinely
     correct paraphrases (e.g. "the bike" vs "bicycle"), so a no-match here
     falls through to the LLM layer rather than asserting FAIL on its own.
-
-    Validated against every real comparison case across two full benchmark
-    runs (Samsung/Dell, mesh/thermostat, dog-bed/training-pads, coffee-maker/
-    stand-mixer, Adidas-sneakers, Hate-U-Give, fence/goats, webinar/workshop)
-    with zero false positives or false negatives.
     """
     ne = _normalize_for_substring_check(extracted_claim)
     nx = _normalize_for_substring_check(expected_answer)
@@ -450,7 +479,14 @@ def _check_substring_match(expected_answer: str, extracted_claim: str) -> Option
     if not ne or not nx:
         return None  # nothing usable to compare, defer to LLM
 
-    if ne in nx or nx in ne:
+    shorter, longer = (ne, nx) if len(ne) <= len(nx) else (nx, ne)
+
+    # Fix 3: Guard against fragment matches — shorter string must be
+    # substantial enough relative to the longer string
+    if len(shorter) < 4 or len(shorter) / len(longer) < 0.5:
+        return None  # too short or too asymmetric — defer to LLM
+
+    if shorter in longer:
         return True
 
     if _check_word_prefix_match(ne, nx):
@@ -536,39 +572,45 @@ def judge(
     llm_api_url: str = "http://localhost:1234/v1/chat/completions",
     model_name: str = "llama-3.1-8b-instruct",
     verbose: bool = True,
+    question_type: str = None,
 ) -> JudgeResult:
     """
-    Five-layer judge. Returns as soon as a layer produces a definitive verdict.
+    Six-layer judge. Returns as soon as a layer produces a definitive verdict.
 
-    Layer 0 (error), Layer 1 (abstention), and Layer 2 (numeric) are
-    deterministic - zero LLM calls when they fire. Layers 3+4 are only
-    reached for responses that survive all deterministic checks, and even
-    then the LLM never grades from raw token overlap - it must extract a
-    claim first, then compare ONLY that claim.
+    Layer 0 (error) and Layer 1 (abstention) are deterministic.
+    Layer 2 (extraction) runs the LLM to extract a <=10 word claim.
+    Layer 3 (numeric) compares numbers from the EXTRACTED CLAIM (not raw response).
+    Layer 4 (substring) checks deterministic string overlap.
+    Layer 5 (comparison) runs LLM comparison as final arbiter.
+
+    Fix 2: Numeric gate moved AFTER extraction so it compares against the
+    extracted claim, not the full raw response (which contains stray numbers).
+    Fix 3c: Comparison/ordering questions skip SUBSTRING_MATCH to prevent
+    false positives from shared generic nouns like "trip".
     """
     model_response = model_response or ""
+    expected_answer = str(expected_answer)  # Fix 1: coerce int/float to str
 
+    # ── Layer 0: ERROR_GATE (deterministic) ──
     result = _check_error_gate(model_response)
     if result:
         if verbose:
             print(f"[JUDGE] {result}")
         return result
 
+    # ── Layer 1: ABSTENTION_GATE (deterministic) ──
     result = _check_abstention_gate(model_response)
     if result:
         if verbose:
             print(f"[JUDGE] {result}")
         return result
 
-    result = _check_numeric_gate(expected_answer, model_response)
-    if result:
-        if verbose:
-            print(f"[JUDGE] {result}")
-        return result
-
+    # ── Layer 2: EXTRACTION (LLM call #1) ──
+    # Fix 2: Moved extraction BEFORE numeric gate so the numeric gate
+    # compares against the extracted claim, not the full raw response.
     extracted, calls_3 = _run_extraction(question, model_response, llm_api_url, model_name)
     if verbose:
-        print(f"[JUDGE] Layer 3 extracted claim: {extracted!r}")
+        print(f"[JUDGE] Layer 2 extracted claim: {extracted!r}")
 
     if extracted.startswith("__EXTRACTION_ERROR__"):
         result = JudgeResult(
@@ -580,10 +622,7 @@ def judge(
             print(f"[JUDGE] {result}")
         return result
 
-    # Normalise to catch both the intended "NO_CLEAR_ANSWER" and the LLM
-    # variant "NO CLEAR ANSWER" (spaces instead of underscores), which
-    # previously slipped through to Layer 4 where the comparison LLM
-    # could mistakenly pass it as matching the expected answer.
+    # Normalise to catch both "NO_CLEAR_ANSWER" and "NO CLEAR ANSWER"
     _extracted_norm = extracted.upper().replace(" ", "_")
     if "NO_CLEAR_ANSWER" in _extracted_norm:
         result = JudgeResult(
@@ -597,24 +636,39 @@ def judge(
             print(f"[JUDGE] {result}")
         return result
 
-    # Deterministic substring pre-check - catches near-synonym matches like
-    # "Data Analysis using Python" vs "'Data Analysis using Python' webinar"
-    # that strict LLM re-reading sometimes fails on, without ever risking a
-    # false PASS (a no-match here defers to the LLM rather than asserting FAIL).
-    substring_match = _check_substring_match(expected_answer, extracted)
-    if substring_match:
-        result = JudgeResult(
-            passed=True, gate="SUBSTRING_MATCH",
-            reasoning=f"Extracted claim {extracted!r} is a normalized substring "
-                      f"match of expected {expected_answer!r} (or vice versa) - "
-                      f"same answer, different phrasing.",
-            extracted_claim=extracted,
-            raw_llm_calls=calls_3,
-        )
+    # ── Layer 3: NUMERIC_GATE (deterministic, now on extracted claim) ──
+    # Fix 2: Uses extracted claim instead of raw model_response
+    result = _check_numeric_gate(expected_answer, extracted)
+    if result:
+        result.extracted_claim = extracted
+        result.raw_llm_calls = calls_3
         if verbose:
             print(f"[JUDGE] {result}")
         return result
 
+    # ── Layer 4: SUBSTRING_MATCH (deterministic) ──
+    # Fix 3c: Comparison/ordering questions skip substring match to prevent
+    # false positives from shared generic nouns (e.g. case 32: "trip").
+    is_comparison = question_type and question_type.upper() in (
+        "COMPARISON", "ORDER", "RELATIONSHIP",
+    )
+
+    if not is_comparison:
+        substring_match = _check_substring_match(expected_answer, extracted)
+        if substring_match:
+            result = JudgeResult(
+                passed=True, gate="SUBSTRING_MATCH",
+                reasoning=f"Extracted claim {extracted!r} is a normalized substring "
+                          f"match of expected {expected_answer!r} (or vice versa) - "
+                          f"same answer, different phrasing.",
+                extracted_claim=extracted,
+                raw_llm_calls=calls_3,
+            )
+            if verbose:
+                print(f"[JUDGE] {result}")
+            return result
+
+    # ── Layer 5: COMPARISON (LLM call #2) ──
     passed, calls_4 = _run_comparison(expected_answer, extracted, llm_api_url, model_name)
 
     result = JudgeResult(

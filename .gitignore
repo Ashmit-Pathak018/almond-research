@@ -71,6 +71,7 @@ logs/
 # =========================
 # ChromaDB
 # =========================
+**/almond_chroma_db_*/
 **/almond_chroma_db_2/
 **/almond_desktop_chroma/
 **/chroma/

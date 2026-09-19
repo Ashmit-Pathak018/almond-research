@@ -52,7 +52,7 @@ import uuid
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Callable
 
 from core.memory_pipeline_v2.query_analyzer import QueryIntent, IntentType
 from core.memory_pipeline_v2.temporal_retriever import RetrievedMemory
@@ -377,12 +377,14 @@ class RankingEngine:
                  timeline_index:  TimelineIndex,
                  meta_store:      Optional[MemoryMetaStore] = None,
                  audit_log:       Optional[RetrievalAuditLog] = None,
+                 block_lookup:    Optional[Callable[[str], Optional["MemoryBlock"]]] = None,
                  top_k:           int = 10):
-        self._registry  = entity_registry
-        self._timeline  = timeline_index
-        self._meta      = meta_store or MemoryMetaStore()
-        self._audit     = audit_log
-        self._top_k     = top_k
+        self._registry     = entity_registry
+        self._timeline     = timeline_index
+        self._meta         = meta_store or MemoryMetaStore()
+        self._audit        = audit_log
+        self._block_lookup = block_lookup
+        self._top_k        = top_k
 
     # ------------------------------------------------------------------
     # Public API
@@ -570,17 +572,25 @@ class RankingEngine:
 
     def _salience(self, meta: Optional[MemoryMeta]) -> float:
         """
-        Combines recency decay + access frequency.
-        Range: [0.0, 1.0]
+        Live salience from MemoryBlock.freshness — the single source of truth.
+
+        freshness is the pure Ebbinghaus decay fraction [0.0, 1.0],
+        computed live from the block's lambda, stability, and delta_t.
+        No caching, no synchronization issues.
+
+        Falls back to a neutral 0.5 if the block can't be found (e.g.
+        block was deleted between retrieval and ranking).
         """
         if not meta:
-            return 0.5   # neutral default
+            return 0.5
 
-        import math
-        recency_decay  = 1.0 / (1.0 + 0.01 * meta.age_days)
-        access_signal  = math.log1p(meta.retrieval_count) / 10.0
-        # Clamp to [0.0, 1.0]
-        return min(1.0, (0.5 * recency_decay) + (0.5 * access_signal))
+        if self._block_lookup:
+            block = self._block_lookup(meta.memory_id)
+            if block is not None:
+                return block.freshness
+
+        # Fallback: no block_lookup wired or block not found
+        return 0.5
 
     # ------------------------------------------------------------------
     # Helpers

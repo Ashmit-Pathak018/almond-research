@@ -32,6 +32,8 @@ from contextlib import asynccontextmanager
 from typing import Optional, List
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import StreamingResponse
+import json
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -244,6 +246,40 @@ def _make_memory_hit_label(trace: dict) -> Optional[str]:
         return None
     return f"{intent.capitalize()} · {candidates} memories"
 
+
+
+# ── /chat/stream ──────────────────────────────────────────────────────────────
+@app.post("/chat/stream")
+def chat_stream(req: ChatRequest):
+    a = _get_almond()
+    if not a:
+        raise HTTPException(503, "Core modules not available")
+
+    trace_id = str(uuid.uuid4())
+
+    if req.session_id:
+        a.config.session_id = req.session_id
+
+    try:
+        ctx, pipeline, generator = a.chat_stream(req.text)
+    except Exception as e:
+        logger.exception("chat_stream() prep failed")
+        raise HTTPException(500, f"Chat failed: {e}")
+
+    def event_generator():
+        for token in generator:
+            yield f"data: {json.dumps({'content': token})}\n\n"
+        
+        # Stream is done — ctx.assistant_reply is now fully populated
+        pipeline.enqueue_ingest(ctx)
+
+        trace = a.controller.get_retrieval_trace()
+        _trace_store[trace_id] = trace
+        memory_hit = _make_memory_hit_label(trace)
+        
+        yield f"data: {json.dumps({'done': True, 'trace_id': trace_id, 'memory_hit': memory_hit})}\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 # ── /memories ─────────────────────────────────────────────────────────────────
 @app.get("/memories")

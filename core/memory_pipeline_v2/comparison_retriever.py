@@ -146,9 +146,20 @@ class ComparisonRetriever:
         # Resolve target names → entities
         targets = self._resolve_targets(intent)
 
+        # ── PROBE: ComparisonRetriever entry ────────────────────────────────
+        print(f"[PROBE][ComparisonRetriever] intent={intent.intent_type.value} "
+              f"registry_size={len(self._registry.all_entities())} "
+              f"comparison_targets={intent.comparison_targets} "
+              f"resolved_targets={len(targets)} "
+              f"target_names={[t.name for t in targets]}")
+        # ────────────────────────────────────────────────────────────────────
+
         if not targets:
             # No entities resolved — fall back to a single semantic search
-            return self._full_fallback(intent)
+            print(f"[PROBE][ComparisonRetriever] no targets -> _full_fallback")
+            result = self._full_fallback(intent)
+            print(f"[PROBE][ComparisonRetriever] full_fallback returned {len(result.flat_memories)} flat memories")
+            return result
 
         groups: list[ComparisonGroup] = []
         used_fallback = False
@@ -158,11 +169,14 @@ class ComparisonRetriever:
             # Don't pass seen_memory_ids here — a memory that mentions both Samsung
             # and Dell should appear in BOTH groups. Deduplication happens in _merge_flat.
             group, fell_back = self._retrieve_for_entity(entity, intent, set())
+            print(f"[PROBE][ComparisonRetriever] entity={entity.name!r} "
+                  f"memories={len(group.memories)} fallback={fell_back}")
             groups.append(group)
             used_fallback = used_fallback or fell_back
 
         # Flat list for the ranking engine: all memories, deduped
         flat = self._merge_flat(groups)
+        print(f"[PROBE][ComparisonRetriever] total flat_memories={len(flat)}")
 
         return ComparisonRetrievalResult(
             groups=groups,

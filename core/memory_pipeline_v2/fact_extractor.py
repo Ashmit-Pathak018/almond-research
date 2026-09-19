@@ -154,22 +154,27 @@ class StructuredFact:
 # Predicate normalisation map
 # ---------------------------------------------------------------------------
 
-# Maps surface forms → canonical predicates.
+# Maps surface forms → canonical event types.
 # Extend freely. Keys are lowercase, values are the canonical form.
 _PREDICATE_MAP: dict[str, str] = {
     # purchasing / acquisition
-    "bought":    "purchased",
-    "got":       "purchased",
-    "picked up": "purchased",
-    "ordered":   "purchased",
-    "received":  "purchased",
-    "acquired":  "purchased",
-    "grabbed":   "purchased",
-    "booked":    "purchased",     # "I booked the Airbnb" — booking is an acquisition event
-    "reserved":  "purchased",     # "I reserved a table" — same pattern
-    "scheduled": "attended",      # "I scheduled a class" — marks an attendance commitment
-    "set up":    "set_up",        # "I set up my thermostat" — device setup is a datable event
-    "installed": "installed",     # "I installed X" — same as set up
+    "bought":    "ACQUIRE",
+    "got":       "ACQUIRE",
+    "purchased": "ACQUIRE",
+    "picked up": "ACQUIRE",
+    "ordered":   "ACQUIRE",
+    "received":  "ACQUIRE",
+    "acquired":  "ACQUIRE",
+    "grabbed":   "ACQUIRE",
+    "booked":    "ACQUIRE",     # "I booked the Airbnb" — booking is an acquisition event
+    "reserved":  "ACQUIRE",     # "I reserved a table" — same pattern
+
+    # setup / start
+    "set up":    "START",        # "I set up my thermostat" — device setup is a datable event
+    "installed": "START",     # "I installed X" — same as set up
+    "started":   "START",
+    "began":     "START",
+    "launched":  "START",
 
     # ownership / possession
     "have":  "owns",
@@ -179,27 +184,31 @@ _PREDICATE_MAP: dict[str, str] = {
     "has":   "owns",
 
     # attendance / presence
-    "went to":      "attended",
-    "participated": "attended",
-    "joined":       "attended",
-    "showed up":    "attended",
+    "went to":      "VISIT",
+    "participated": "VISIT",
+    "joined":       "VISIT",
+    "showed up":    "VISIT",
+    "attended":     "VISIT",
+    "visited":      "VISIT",
 
     # completion
-    "finished":  "completed",
-    "done with": "completed",
-    "wrapped up": "completed",
+    "finished":  "FINISH",
+    "done with": "FINISH",
+    "wrapped up": "FINISH",
+    "completed": "FINISH",
 
     # employment
-    "work at":   "works_at",
-    "work for":  "works_at",
-    "employed at": "works_at",
-    "job at":    "works_at",
+    "work at":   "WORK",
+    "work for":  "WORK",
+    "employed at": "WORK",
+    "job at":    "WORK",
 
-    # residence
+    # residence / movement
     "live in":   "lives_in",
     "living in": "lives_in",
     "based in":  "lives_in",
-    "moved to":  "moved_to",
+    "moved to":  "MOVE",
+    "relocated to": "MOVE",
 
     # preferences
     "prefer":   "prefers",
@@ -527,6 +536,13 @@ class FactExtractor:
             fact.predicate = normalise_predicate(fact.predicate)
             if fact.date_raw and not fact.temporal_bound:
                 fact.temporal_bound = parse_temporal(fact.date_raw, anchor)
+            if not fact.temporal_bound:
+                fact.temporal_bound = TemporalBound(
+                    earliest=anchor,
+                    latest=anchor,
+                    confidence=0.8,
+                    granularity=TemporalGranularity.UNKNOWN
+                )
             if fact.confidence < 0.5:
                 fact.needs_review = True
 
@@ -623,6 +639,16 @@ class FactExtractor:
 
                 date_raw = str(item.get("date_raw", "") or "")
                 tb       = parse_temporal(date_raw, anchor) if date_raw else None
+                if tb is None:
+                    # Fallback to the session timestamp (anchor) as the temporal bound
+                    # with a slightly lower confidence so explicit dates override it.
+                    tb = TemporalBound(
+                        earliest=anchor,
+                        latest=anchor,
+                        confidence=0.50,
+                        granularity=TemporalGranularity.DAY,
+                        raw="session_timestamp"
+                    )
 
                 fact = StructuredFact(
                     id=str(uuid.uuid4()),
